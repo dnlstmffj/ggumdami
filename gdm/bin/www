@@ -7,6 +7,15 @@
 var app = require('../app');
 var debug = require('debug')('gdm:server');
 var http = require('http');
+// 시간 정보를 위한 moment 불러오기
+var moment = require('moment');
+var moment_timezone = require('moment-timezone');
+moment.tz.setDefault("Asia/Seoul");
+
+// 로그 함수
+function console_log(text) {
+    console.log('[' + moment().format("YYYY-MM-DD HH:mm:ss") + '] ' + text);
+}
 
 /**
  * Get port from environment and store in Express.
@@ -28,7 +37,7 @@ var server = http.createServer(app);
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
-console.log("Server has been started");
+console_log("Server has been started");
 
 /**
  * Normalize a port into a number, string, or false.
