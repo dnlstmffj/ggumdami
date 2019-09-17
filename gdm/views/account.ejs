@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title><%=title%> 꿈담이 로그인</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+<!--===============================================================================================-->	
+	<link rel="icon" type="image/png" href="images/icons/favicon.ico"/>
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="vendor/bootstrap/css/bootstrap.min.css">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="fonts/font-awesome-4.7.0/css/font-awesome.min.css">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="fonts/iconic/css/material-design-iconic-font.min.css">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="vendor/animate/animate.css">
+<!--===============================================================================================-->	
+	<link rel="stylesheet" type="text/css" href="vendor/css-hamburgers/hamburgers.min.css">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="vendor/animsition/css/animsition.min.css">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="vendor/select2/select2.min.css">
+<!--===============================================================================================-->	
+	<link rel="stylesheet" type="text/css" href="vendor/daterangepicker/daterangepicker.css">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="css/util.css">
+	<link rel="stylesheet" type="text/css" href="css/main.css">
+<!--===============================================================================================-->
+  <script>
+    function login() {
+      var name = document.getElementById('name').value;
+      var birthdate = document.getElementById('birthdate').value;
+      var phonenumber = document.getElementById('phonenumber').value;
+      $.ajax({
+          url: "/login",
+          type: "post",
+          data: {
+            id:name,
+            birthdate:birthdate,
+            phone:phonenumber
+          }
+        }).done(function(results) {
+ 
+          if(results == "200") {
+            window.location.href = '/';
+          } else {
+            alert("입력한 정보가 올바르지 않습니다.");
+          }
+      
+        });
+
+    }
+    
+  </script>
+</head>
+<body>
+	    
+	<div class="limiter">
+		<div class="container-login100">
+			<div class="wrap-login100 p-t-85 p-b-20">
+				<form class="login100-form validate-form">
+					<span class="login100-form-title p-b-70">
+						<%=title%>
+					</span>
+
+					<div class="wrap-input100 validate-input m-t-85 m-b-35" data-validate = "학번을 입력하세요.">
+						<input id="name" class="input100" type="number" name="stuid">
+						<span class="focus-input100" data-placeholder="학번"></span>
+					</div>
+          <div class="wrap-input100 validate-input m-b-50" data-validate = "생년월일을 입력하세요.">
+						<input id="birthdate" class="input100" type="number" name="birthdate">
+						<span class="focus-input100" data-placeholder="생년월일"></span>
+					</div>
+          <div class="wrap-input100 validate-input m-b-50" data-validate = "휴대전화번호를 입력하세요.">
+						<input id="phonenumber" class="input100" type="number" name="birthdate">
+						<span class="focus-input100" data-placeholder="휴대전화번호"></span>
+					</div>
+					<div class="container-login100-form-btn">
+						<button onClick="login()" class="login100-form-btn">
+							로그인
+						</button>
+					</div>
+          <ul class="login-more p-t-190">
+						<li class="m-b-8">
+							<span class="txt1">
+								학번이 무엇인가요?
+							</span>
+
+							<a href="#" class="txt2"  data-toggle="modal" data-target="#exampleModal">
+								학번 찾기
+							</a>
+						</li>
+
+						<li>
+							<span class="txt1">
+								휴대전화가 없나요?
+							</span>
+
+							<a  class="txt2">
+								부모님 휴대전화를 입력하세요.
+							</a>
+						</li>
+					</ul>
+
+				</form>
+			</div>
+		</div>
+	</div>
+  
+	<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">학번 찾기</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <%=title%>의 학번 규칙은 학년, 반, 번호 조합 4글자 입니다. <br>
+        예시: 1학년 5반 1번 = 1501
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary"  data-dismiss="modal">확인</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+	<div id="dropDownSelect1"></div>
+	
+<!--===============================================================================================-->
+	<script src="vendor/jquery/jquery-3.2.1.min.js"></script>
+<!--===============================================================================================-->
+	<script src="vendor/animsition/js/animsition.min.js"></script>
+<!--===============================================================================================-->
+	<script src="vendor/bootstrap/js/popper.js"></script>
+	<script src="vendor/bootstrap/js/bootstrap.min.js"></script>
+<!--===============================================================================================-->
+	<script src="vendor/select2/select2.min.js"></script>
+<!--===============================================================================================-->
+	<script src="vendor/daterangepicker/moment.min.js"></script>
+	<script src="vendor/daterangepicker/daterangepicker.js"></script>
+<!--===============================================================================================-->
+	<script src="vendor/countdowntime/countdowntime.js"></script>
+<!--===============================================================================================-->
+	<script src="js/main.js"></script>
+
+</body>
+</html>
