@@ -8,7 +8,7 @@ const session = require('express-session');
 const moment = require('moment');
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
-const async = require('async');
+const accountRouter = require('./routes/account');
 
 var app = express();
 //const moment_timezone = require('moment-timezone');
@@ -18,6 +18,7 @@ const connection = mysql.createConnection({
     password : 'Hello00!',
     database : 'ggumdami'
 });
+
 const isEmpty = function(value){
     if( value == "" || value == null || value == undefined || ( value != null && typeof value == "object" && !Object.keys(value).length ) ){
         return true
@@ -41,26 +42,24 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
- secret: '@#@$RYCGAR#@$#$',
+ secret: '@#@$RYCBAR123#@$#$',
  resave: false,
  saveUninitialized: true
 }));
 
 // post login with name phone birthdate studentid
 app.post('/login', function(req, res){
-  connection.query('SELECT * FROM students WHERE phone=' + req.body.phone + ' AND birthdate=' + req.body.birthdate + ' AND id=' + req.body.stuid, function (error, results, fields) {
+  connection.query('SELECT * FROM students WHERE phone=' + req.body.phone + ' AND birthdate=' + req.body.birthdate + ' AND id='+req.body.id, function (error, results, fields) {
     if (error) {
         console_log(error);
         res.end("500");
     } else { 
-        if(req.body.name == results[0].name) {
-            console_log("Login Success: (id)" + results[0].id);
-            req.session.id = results[0].id;
-            res.end("200");
-        } else {
-            console_log("403! Autification Error: (id)" + results[0].id);
-            res.end("403");
-        }
+      if(!isEmpty(results)) {
+        console_log("Login Success: (id)" + results[0].id);
+        req.session.stuid = results[0].id;
+       
+        res.end("200");
+      }
     }
   });
 });
@@ -77,7 +76,7 @@ app.post('/logout', function(req, res){
 });
 
 app.post('/apply', function(req, res){
-    connection.query("SELECT EXISTS(SELECT * FROM topic_history WHERE student=" + req.session.id + " AND which=" + req.body.which + ") as value", function (error, results, fields) {
+    connection.query("SELECT EXISTS(SELECT * FROM topic_history WHERE student=" + req.session.stuid + " AND which=" + req.body.which + ") as value", function (error, results, fields) {
         if (error) {
             console_log(error);
             res.end("500");
@@ -87,7 +86,7 @@ app.post('/apply', function(req, res){
                     console_log(error);
                     res.end("500");
                 } else { 
-                    connection.query('INSERT INTO applications VALUES(NULL, ' + req.session.id + ', ' + req.body.which + ')', function (error, results, fields) {
+                    connection.query('INSERT INTO applications VALUES(NULL, ' + req.session.stuid + ', ' + req.body.which + ')', function (error, results, fields) {
                         if (error) {
                             console_log(error);
                             res.end("500");
@@ -98,7 +97,7 @@ app.post('/apply', function(req, res){
                 }
             });
         } else {
-            console_log("Service weakness critical error: (id)" + req.session.id);
+            console_log("Service weakness critical error: (id)" + req.session.stuid);
             res.end("403");
         }
     });
@@ -112,7 +111,7 @@ app.post('/cancel', function(req, res){
       console_log(error);
       res.end("500");
     } else if(results[0].value == 1 && !isEmpty(req.body.session)){ 
-      connection.query('INSERT INTO applications VALUES(NULL, ' + req.session.id + ', ' + req.body.which + ')', function (error, results, fields) {
+      connection.query('INSERT INTO applications VALUES(NULL, ' + req.session.stuid + ', ' + req.body.which + ')', function (error, results, fields) {
         if (error) {
         console_log(error);
         res.end("500");
@@ -129,6 +128,7 @@ app.post('/cancel', function(req, res){
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/account', accountRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
