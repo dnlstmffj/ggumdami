@@ -10,9 +10,16 @@
     "debug": "~2.6.9",
     "ejs": "~2.6.1",
     "express": "~4.16.1",
+    "express-session": "^1.16.2",
+    "framework7": "^4.5.0",
     "http-errors": "~1.6.3",
     "moment": "^2.24.0",
     "moment-timezone": "^0.5.26",
     "morgan": "~1.9.1"
+  },
+  "devDependencies": {
+    "eslint": "^6.4.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-plugin-import": "^2.18.2"
   }
 }
