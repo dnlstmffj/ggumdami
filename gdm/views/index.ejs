@@ -1,14 +1,31 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>꿈담이</title>
+    <title><%=setting[1].value%> 꿈담이</title>
+    <link rel="stylesheet" href="assets/css/reset.css">
+    <link rel="stylesheet" href="assets/css/content.css">
+    <link id="dark-mode-sheet"
+          rel="stylesheet"
+          href="assets/css/dark.css"
+          media="(prefers-color-scheme: dark)">
+    <script src="assets/js/dark.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.2.1/js.cookie.js"></script>
     <script> 
+      var teachers = [];
         //isEmpty: 변수 값 존재 여부 확인
         var isEmpty = function(value){ 
             if( value == "" || value == null || value == undefined || ( value != null && typeof value == "object" && !Object.keys(value).length ) ) return true;
             else return false;
         };
-        
+        $.ajax({
+          url: "/get_teachers",
+          type: "post"
+        }).done(function(results) {
+          console.log(results_program);
+          card_title.innerHTML = results_program[0].sessionid + '기. ' + results_program[0].name;
+          card_teacher.innerHTML = results_program[0].teacher;
+          card_place.innerHTML = results_program[0].place;
+        });
         //메뉴
         window.fn = {};
         window.fn.open = function() {
@@ -21,11 +38,13 @@
           var menu = document.getElementById('menu');
           content.load(page)
             .then(menu.close.bind(menu));
+          updateForDarkModeChange();
         };
         function show_page_apply() {
             document.querySelector('#Navigator').pushPage('page_apply.html', {data: {toolbar_title: 'Hello World'}});
         }
         document.addEventListener('init', function(event) {
+          
             var page = event.target;
             if (page.id === 'menu_topic') {
                 page.querySelector('#push-button').onclick = function() {
@@ -36,16 +55,56 @@
             } else if (page.id === 'page_apply') {
                 console.log(page.data.toolbar_title);
                 document.getElementById('toolbar_apply').innerHTML = page.data.toolbar_title;
+            } else if (page.id.indexOf('menu_') !== -1) {
+              let str = page.id;
+              $.ajax({
+                url: "/get_application",
+                type: "post",
+                data: {
+                  class:str.split('_')[1]
+                }
+              }).done(function(results) {
+                console.log(results);
+                var card_title, card_teacher, card_place;
+                for(var i=0; i<results.length; i++) {
+                  card_title = document.querySelector('#card_' + str.split('_')[1] + '_' + results[i].id + ' .title');
+                  card_teacher = document.querySelector('#card_' + str.split('_')[1] + '_' + results[i].id + ' .teacher');
+                  card_place = document.querySelector('#card_' + str.split('_')[1] + '_' + results[i].id + ' .place');  
+
+                  $.ajax({
+                    url: "/get_program_insession",
+                    type: "post",
+                    data: {
+                      id:results[i].which
+                    }
+                  }).done(function(results_program) {
+                    console.log(results_program);
+                    card_title.innerHTML = results_program[0].sessionid + '기. ' + results_program[0].name;
+                    card_teacher.innerHTML = results_program[0].teacher;
+                    card_place.innerHTML = results_program[0].place;
+                  });
+                }
                 
+                
+              });
+              
             }
         });
+        const darkModeMeidaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        function updateForDarkModeChange() {
+          if (darkModeMeidaQuery.matches) {
+            document.querySelector('#csslink').setAttribute('href', 'https://unpkg.com/onsenui/css/dark-onsen-css-components.min.css');
+          } 
+        }
+
+        darkModeMeidaQuery.addListener(updateForDarkModeChange);
         
     </script>
       
     <!--CDN-->
     <link rel='stylesheet' href='/stylesheets/style.css' />
     <link rel="stylesheet" href="https://unpkg.com/onsenui/css/onsenui.css">
-    <link rel="stylesheet" href="https://unpkg.com/onsenui/css/onsen-css-components.min.css">
+    <link id="csslink" rel="stylesheet" href="https://unpkg.com/onsenui/css/onsen-css-components.min.css">
     <link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR:400,500,700&display=swap&subset=korean" rel="stylesheet">
     <script src="https://unpkg.com/onsenui/js/onsenui.min.js"></script>
     <script src="https://unpkg.com/jquery/dist/jquery.min.js"></script>
@@ -67,7 +126,9 @@
             <ons-page>
                 <ons-list>
                     <ons-list-item onclick="fn.load('navigate_container_home.html')" tappable>신청자 정보</ons-list-item>
-                    <ons-list-item onclick="fn.load('navigate_container_topic.html')" tappable>주제선택프로그램</ons-list-item>
+                    <% for(var i=0; i<sessinfo.length; i++) {%>
+                      <ons-list-item onclick="fn.load('navigate_container_<%=sessinfo[i].id%>.html')" tappable><%=sessinfo[i].name%></ons-list-item>
+                    <%}%>
                     <ons-list-item onClick="show_page_apply()" tappable>SHOW</ons-list-item>
                 </ons-list>
             </ons-page>
@@ -81,14 +142,14 @@
             <ons-navigator animation="lift" id="navigator_home" page="menu_home.html"></ons-navigator>         
         </ons-page>
     </template>
-	  
-    <template id="navigate_container_topic.html">
-        <ons-page id="navigate_container_topic">
-            <ons-navigator animation="lift" id="navigator_topic" page="menu_topic.html"></ons-navigator>         
+     <% for(var i=0; i<sessinfo.length; i++) {%>
+      <template id="navigate_container_<%=sessinfo[i].id%>.html">
+        <ons-page id="navigate_container_<%=sessinfo[i].id%>">
+          <ons-navigator animation="lift" id="navigator_topic" page="menu_<%=sessinfo[i].id%>.html"></ons-navigator>         
         </ons-page>
-    </template>
-      
-    <!--Home-->
+      </template>
+     <%}%>
+  <!--Home-->
     <template id="menu_home.html">
         <ons-page id="menu_home">
             <ons-toolbar>
@@ -112,33 +173,41 @@
             </ons-card>
         </ons-page>
     </template>
+    <% for(var i=0; i<sessinfo.length; i++) {%>
+
       
-    <template id="menu_topic.html">
-        <ons-page id="menu_topic">
-            <ons-toolbar>
-                <div class="left">
-                    <ons-toolbar-button onclick="fn.open()">
-                    <ons-icon icon="md-menu"></ons-icon>
-                    </ons-toolbar-button>
-                </div>
-                <div class="center">구름중학교 꿈담이</div>
-            </ons-toolbar>
-            <ons-card>
-                <div class="title">
-                  1기. 수강신청이 필요합니다.
-                </div>
-                <div class="content">
-                  <ons-list>
-                    <ons-list-header>지도교사</ons-list-header>
-                    <ons-list-item></ons-list-item>
-                    <ons-list-header>교육장소</ons-list-header>
-                    <ons-list-item></ons-list-item>
-                  </ons-list>
-                </div>
-                <ons-button modifier="large">프로그램 선택</ons-button>
-            </ons-card>
-        </ons-page>
+  <template id="menu_<%=sessinfo[i].id%>.html">
+    <ons-page id="menu_<%=sessinfo[i].id%>">
+       <ons-toolbar>
+         <div class="left">
+            <ons-toolbar-button onclick="fn.open()">
+            <ons-icon icon="md-menu"></ons-icon>
+            </ons-toolbar-button>
+         </div>
+         <div class="center">
+           <%=sessinfo[i].name%>
+         </div>
+      </ons-toolbar>      
+      <% for(var j=0; j<sessinfo[i].batches; j++) {%>
+        <ons-card id="card_<%=sessinfo[i].id%>_<%=j+1%>">
+            <div class="title">
+              <%=j+1%>기. 
+            </div>
+            <div class="content">
+              <ons-list>
+                <ons-list-header>지도교사</ons-list-header>
+                <ons-list-item class="teacher"></ons-list-item>
+                <ons-list-header>교육장소</ons-list-header>
+                <ons-list-item class="place"></ons-list-item>
+              </ons-list>
+            </div>
+            <ons-button modifier="large">프로그램 선택</ons-button>
+        </ons-card>
+    <%}%>
+    </ons-page>
     </template>
+    <%}%>
+    
     <!--Applicaiton Page-->
     <template id="page_apply.html">
         <ons-page id="page_apply">

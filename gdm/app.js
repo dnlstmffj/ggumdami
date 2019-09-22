@@ -10,19 +10,20 @@ const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 const accountRouter = require('./routes/account');
 
-var app = express();
-//const moment_timezone = require('moment-timezone');
+const app = express();
+// const moment_timezone = require('moment-timezone');
 const connection = mysql.createConnection({
-    host     : 'speakeasy.lucomstudio.com',
-    user     : 'drecat',
-    password : 'Hello00!',
-    database : 'ggumdami'
+  host:'speakeasy.lucomstudio.com',
+  user:'drecat',
+  password:'Hello00!',
+  database:'ggumdami'
 });
 
-const isEmpty = function(value){
-    if( value == "" || value == null || value == undefined || ( value != null && typeof value == "object" && !Object.keys(value).length ) ){
-        return true
-    } else return false
+
+function isEmpty(value){
+  if ( value == "" || value == null || value == undefined || ( value != null && typeof value == "object" && !Object.keys(value).length ) ){
+      return true
+  } else return false
 };
 
 moment.tz.setDefault("Asia/Seoul");
@@ -30,8 +31,7 @@ connection.connect();
 
 // 로그 함수 - text에 시간을 붙여서 console.log() 합니다.
 function console_log(text) {
-    console.log('[' + moment().format("YYYY-MM-DD HH:mm:ss") + '] ' + text);
-
+  console.log('[' + moment().format("YYYY-MM-DD HH:mm:ss") + '] ' + text);
 }
 
 app.set('views', path.join(__dirname, 'views'));
@@ -57,11 +57,63 @@ app.post('/login', function(req, res){
       if(!isEmpty(results)) {
         console_log("Login Success: (id)" + results[0].id);
         req.session.stuid = results[0].id;
-       
         res.end("200");
+      } else{
+        res.end("403");
       }
     }
   });
+});
+
+app.post('/get_application', function(req, res){
+  connection.query('SELECT * FROM applications WHERE session=' + req.body.class + ' AND student=' + req.session.stuid, function (error, results, fields) {
+    if (error) {
+      console_log(error);
+      res.end("500");
+    } else { 
+      res.json(results);
+      
+    }
+  });
+  
+});
+
+app.post('/get_teachers', function(req, res){
+  connection.query('SELECT * FROM teachers', function (error, results, fields) {
+    if (error) {
+      console_log(error);
+      res.end("500");
+    } else { 
+      res.json(results);
+      
+    }
+  });
+  
+});
+
+app.post('/get_program_insession', function(req, res){
+  connection.query('SELECT * FROM sessions WHERE id=' + req.body.id, function (error, results_session, fields) {
+    if (error) {
+      console_log(error);
+      res.end("500");
+    } else {
+      connection.query('SELECT * FROM programs WHERE id=' + results_session[0].program, function (error, results, fields) {
+        if (error) {
+          console_log(error);
+          res.end("500");
+        } else { 
+          
+          results[0].sessionid = results_session[0].batch;
+          console.log(results);
+          res.json(results);
+
+        }
+      });
+      
+      
+    }
+  });
+  
 });
 
 app.post('/logout', function(req, res){

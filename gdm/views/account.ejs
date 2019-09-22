@@ -42,9 +42,11 @@
         }).done(function(results) {
  
           if(results == "200") {
-            window.location.href = '/';
+            window.location.href = '../';
+          } else if (results == "403") {
+            alert("입력한 정보가 올바르지 않습니다.");          
           } else {
-            alert("입력한 정보가 올바르지 않습니다.");
+            alert("서비스 오류가 발생했습니다.");
           }
       
         });
@@ -55,7 +57,6 @@
 </head>
 <body>
 	    
-	<div class="limiter">
 		<div class="container-login100">
 			<div class="wrap-login100 p-t-85 p-b-20">
 				<form class="login100-form validate-form">

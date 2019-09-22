@@ -18,8 +18,8 @@ const isEmpty = function(value){
     } else return false
 };
 /* GET home page. */
-let data_groups, data_applications;
-let data_programs=[], data_sessions=[], data_settings=[], data_teachers=[];
+let data_groups, data_applications, date_info;
+let data_programs=[], data_sessions=[], data_settings=[], data_teachers=[], data_preferences=[], data_sessinfo=[], data_sessions_indexed;
 router.get('/', function(req, res, next) {
   console.log(req.session.stuid);
   if(isEmpty(req.session.stuid)) {
@@ -28,12 +28,23 @@ router.get('/', function(req, res, next) {
     res.end();
     return;
   } else {
-    connection.query('SELECT * FROM applications WHERE id=' + req.session.stuid , function (error, results, fields) {
+  connection.query('SELECT * FROM applications WHERE id=' + req.session.stuid , function (error, results, fields) {
     if (error) {
         console.log(error);
     }
     console.log(results);
-    data_applications = results;
+    for(var i=0; i<results.length; i++) {
+      data_applications[results[i].id] = results[i];
+    }
+    
+
+  });
+  connection.query('SELECT * FROM students WHERE id=' + req.session.stuid , function (error, results, fields) {
+    if (error) {
+        console.log(error);
+    }
+    console.log(results);
+    data_info = results[0];
 
   });
   connection.query('SELECT * FROM groups', function (error, results, fields) {
@@ -72,7 +83,16 @@ router.get('/', function(req, res, next) {
     for(var i=0; i<results.length; i++) {
       data_settings[results[i].id] = results[i];
     }
-    data_settings = results;
+
+
+  });
+  connection.query('SELECT * FROM session_info', function (error, results, fields) {
+    if (error) {
+        console.log(error);
+    }
+    console.log(results);
+
+    data_sessinfo = results;
 
   });
   connection.query('SELECT * FROM teachers', function (error, results, fields) {
@@ -83,8 +103,8 @@ router.get('/', function(req, res, next) {
     for(var i=0; i<results.length; i++) {
       data_teachers[results[i].id] = results[i];
     }
-    data_teachers = results;
-    res.render('index', { applications: data_applications, group:data_groups, program:data_programs, session:data_sessions, setting:data_settings, teacher:data_teachers});
+
+    res.render('index', { applications: data_applications, group:data_groups, program:data_programs, session:data_sessions, setting:data_settings, teacher:data_teachers, info:data_info, sessinfo:data_sessinfo, sessindexed: data_sessions_indexed});
   });
   }
   
