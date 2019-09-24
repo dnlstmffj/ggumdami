@@ -91,6 +91,40 @@ app.post('/get_teachers', function(req, res){
   
 });
 
+app.post('/get_programs', function(req, res){
+  connection.query('SELECT * FROM sessions WHERE session=' + req.body.session + ' AND batch=' + req.body.batch, function (error, results, fields) {
+    if (error) {
+      console_log(error);
+      res.end("500");
+    } else { 
+      console.log(results);
+      res.json(results);
+    }
+  });
+});
+
+app.post('/get_programinfo', function(req, res){
+  connection.query('SELECT * FROM programs', function (error, results, fields) {
+    if (error) {
+      console_log(error);
+      res.end("500");
+    } else { 
+      res.json(results);
+    }
+  });
+});
+
+app.post('/get_sessioninfo', function(req, res){
+  connection.query('SELECT * FROM session_info', function (error, results, fields) {
+    if (error) {
+      console_log(error);
+      res.end("500");
+    } else { 
+      res.json(results);
+    }
+  });
+});
+
 app.post('/get_program_insession', function(req, res){
   connection.query('SELECT * FROM sessions WHERE id=' + req.body.id, function (error, results_session, fields) {
     if (error) {
@@ -102,10 +136,19 @@ app.post('/get_program_insession', function(req, res){
           console_log(error);
           res.end("500");
         } else { 
-          
-          results[0].sessionid = results_session[0].batch;
-          console.log(results);
-          res.json(results);
+          connection.query('SELECT * FROM period WHERE session=' + results_session[0].session + ' AND batch=' + results_session[0].batch, function (error, results_period, fields) {
+            if (error) {
+              console_log(error);
+              res.end("500");
+            } else { 
+
+              results[0].sessionid = results_session[0].batch;
+              results[0].period = results_period[0].value;
+              console.log(results);
+              res.json(results);
+
+            }
+          });
 
         }
       });
