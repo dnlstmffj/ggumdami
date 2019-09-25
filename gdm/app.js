@@ -201,12 +201,12 @@ app.post('/apply', function(req, res){
 
 
 app.post('/cancel', function(req, res){
-  connection.query('SELECT value FROM settings WHERE id=1', function (error, results, fields) {
+  connection.query('SELECT EXISTS(SELECT * FROM application WHERE id=' + req.body.id + ')as value', function (error, results, fields) {
     if (error) {
       console_log(error);
       res.end("500");
     } else if(results[0].value == 1 && !isEmpty(req.body.session)){ 
-      connection.query('INSERT INTO applications VALUES(NULL, ' + req.session.stuid + ', ' + req.body.which + ')', function (error, results, fields) {
+      connection.query('DELETE FROM applications WHERE id=' + req.body.id, function (error, results, fields) {
         if (error) {
         console_log(error);
         res.end("500");
