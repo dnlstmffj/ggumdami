@@ -71,6 +71,7 @@ app.post('/get_application', function(req, res){
       console_log(error);
       res.end("500");
     } else { 
+      
       res.json(results);
       
     }
@@ -125,6 +126,17 @@ app.post('/get_sessioninfo', function(req, res){
   });
 });
 
+app.post('/get_sessions', function(req, res){
+  connection.query('SELECT * FROM sessions', function (error, results, fields) {
+    if (error) {
+      console_log(error);
+      res.end("500");
+    } else { 
+      res.json(results);
+    }
+  });
+});
+
 app.post('/get_program_insession', function(req, res){
   connection.query('SELECT * FROM sessions WHERE id=' + req.body.id, function (error, results_session, fields) {
     if (error) {
@@ -143,6 +155,7 @@ app.post('/get_program_insession', function(req, res){
             } else { 
 
               results[0].sessionid = results_session[0].batch;
+              results[0].which = results_session[0].id;
               results[0].period = results_period[0].value;
               console.log(results);
               res.json(results);
@@ -170,42 +183,14 @@ app.post('/logout', function(req, res){
     });
 });
 
-app.post('/apply', function(req, res){
-    connection.query("SELECT EXISTS(SELECT * FROM topic_history WHERE student=" + req.session.stuid + " AND which=" + req.body.which + ") as value", function (error, results, fields) {
-        if (error) {
-            console_log(error);
-            res.end("500");
-        } else if(results[0].value == 0 && !isEmpty(req.body.session)) { 
-            connection.query('SELECT COUNT(*) as cnt FROM applications WHERE program=' + req.body.program, function (error, results, fields) {
-                if (error) {
-                    console_log(error);
-                    res.end("500");
-                } else { 
-                    connection.query('INSERT INTO applications VALUES(NULL, ' + req.session.stuid + ', ' + req.body.which + ')', function (error, results, fields) {
-                        if (error) {
-                            console_log(error);
-                            res.end("500");
-                        } else { 
-                            res.end("200");
-                        }
-                    });
-                }
-            });
-        } else {
-            console_log("Service weakness critical error: (id)" + req.session.stuid);
-            res.end("403");
-        }
-    });
-    
-});
 
 
 app.post('/cancel', function(req, res){
-  connection.query('SELECT EXISTS(SELECT * FROM application WHERE id=' + req.body.id + ')as value', function (error, results, fields) {
+  connection.query('SELECT EXISTS(SELECT * FROM applications WHERE id=' + req.body.id + ')as value', function (error, results, fields) {
     if (error) {
       console_log(error);
       res.end("500");
-    } else if(results[0].value == 1 && !isEmpty(req.body.session)){ 
+    } else if(results[0].value == 1){ 
       connection.query('DELETE FROM applications WHERE id=' + req.body.id, function (error, results, fields) {
         if (error) {
         console_log(error);
@@ -217,8 +202,27 @@ app.post('/cancel', function(req, res){
     } else {
       res.end("403");
     }
-  });
-    
+  }); 
+});
+
+
+app.post('/apply', function(req, res){
+  connection.query('INSERT INTO applications (which) SELECT IF((SELECT COUNT(*) FROM applications WHERE which=' + req.body.which + ') >= (SELECT max FROM sessions WHERE id=' + req.body.which + '), 0, ' + req.body.which + ')', function (error, results, fields) {
+    if (error) {
+      console_log(error);
+      res.end("500");
+    } 
+    console.log(results);
+    connection.query('UPDATE applications SET student=' + req.session.stuid + ', session=' + req.body.session + ' WHERE id=' + results.insertId, function (error, results, fields) {
+      if (error) {
+      console_log(error);
+      res.end("500");
+      } else { 
+        res.end("200");
+      }
+    });
+
+  }); 
 });
 
 app.use('/', indexRouter);

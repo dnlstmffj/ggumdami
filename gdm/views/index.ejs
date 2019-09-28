@@ -13,7 +13,7 @@
     <script src="pace/pace.js"></script> 
     <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
     <script> 
-        var teachers = [], programs=[], sessioninfo=[];
+        var teachers = [], programs=[], sessioninfo=[], sessions = [];
         
         //isEmpty: 변수 값 존재 여부 확인
         var isEmpty = function(value){ 
@@ -46,12 +46,36 @@
         function show_page_apply() {
             document.querySelector('#Navigator').pushPage('page_apply.html', {data: {toolbar_title: 'Hello World'}});
         }
-      
+        function cancel(id) {
+          $.ajax({
+            url: "/cancel",
+            type: "post",
+            data : {
+              id: id
+            }
+          }).done(function(results) {
+            alert(results);
+          });
+        }
+        function apply(id, session) {
+          $.ajax({
+            url: "/apply",
+            type: "post",
+            data : {
+              which: id,
+              session:session
+            }
+          }).done(function(results) {
+            document.querySelector('#navigator_' + session).popPage();
+            fn.load('navigate_container_' + session + '.html');
+            
+          });
+        }
         window.onload = function () {
           updateForDarkModeChange();
         $.ajax({
             url: "/get_teachers",
-            type: "post",
+            type: "post"
           }).done(function(results) {
             for(var i=0; i<results.length; i++) {
               teachers[results[i].id] = results[i];
@@ -59,7 +83,7 @@
           });
           $.ajax({
             url: "/get_programinfo",
-            type: "post",
+            type: "post"
           }).done(function(results) {
             for(var i=0; i<results.length; i++) {
               programs[results[i].id] = results[i];
@@ -67,10 +91,18 @@
           });
           $.ajax({
             url: "/get_sessioninfo",
-            type: "post",
+            type: "post"
           }).done(function(results) {
             for(var i=0; i<results.length; i++) {
               sessioninfo[results[i].id] = results[i];
+            }
+          });
+          $.ajax({
+            url: "/get_sessions",
+            type: "post"
+          }).done(function(results) {
+            for(var i=0; i<results.length; i++) {
+              sessions[results[i].id] = results[i];
             }
           });
         }
@@ -99,12 +131,16 @@
                 }
               }).done(function(results) {
                 console.log(results);
-                var card_title, card_teacher, card_place, card_period;
+                var card_title, card_teacher, card_place, card_period, card_btn;
                 for(var i=0; i<results.length; i++) {
-                  card_title = document.querySelector('#card_' + str.split('_')[1] + '_' + results[i].id + ' .title');
-                  card_teacher = document.querySelector('#card_' + str.split('_')[1] + '_' + results[i].id + ' .teacher');
-                  card_place = document.querySelector('#card_' + str.split('_')[1] + '_' + results[i].id + ' .place');  
-                  card_period = document.querySelector('#card_' + str.split('_')[1] + '_' + results[i].id + ' .period');  
+                  card_title = document.querySelector('#card_' + str.split('_')[1] + '_' + sessions[results[i].which].batch + ' .title');
+                  card_teacher = document.querySelector('#card_' + str.split('_')[1] + '_' + sessions[results[i].which].batch + ' .teacher');
+                  card_place = document.querySelector('#card_' + str.split('_')[1] + '_' + sessions[results[i].which].batch + ' .place');  
+                  card_period = document.querySelector('#card_' + str.split('_')[1] + '_' + sessions[results[i].which].batch + ' .period'); 
+                  card_btn = document.querySelector('#card_' + str.split('_')[1] + '_' + sessions[results[i].which].batch + ' .btn_apply'); 
+                  card_btn.setAttribute('onClick', 'cancel(' + results[i].id + ')');
+                  card_btn.innerHTML = "신청 취소";
+                  card_btn.setAttribute('style', 'background-color: red; color: white');
                   $.ajax({
                     url: "/get_program_insession",
                     type: "post",
@@ -135,7 +171,7 @@
                 
                 console.log(results);
                 for(var i=0; i<results.length; i++) {
-                  content = "<ons-list-item  class='list-item' tappable><div class='center'> <span class='list-item__title'>" + programs[results[i].program].name + "</span><span class='list-item__subtitle'>"+ teachers[programs[results[i].program].teacher].name +"</span> </div> <div class='right'>" + results[i].cur + "/" + results[i].max +"</div> </ons-list-item>";
+                  content = "<ons-list-item onClick='apply(" + results[i].id + ', ' + page.data.session + ")' class='list-item' tappable><div class='center'> <span class='list-item__title'>" + programs[results[i].program].name + "</span><span class='list-item__subtitle'>"+ teachers[programs[results[i].program].teacher].name +"</span> </div> <div class='right'>" + results[i].cur + "/" + results[i].max +"</div> </ons-list-item>";
                   $('#list_programs').append(content);
                   
                 }
@@ -247,7 +283,7 @@
                 <ons-list-item class="period"></ons-list-item>
               </ons-list>
             </div> <br>
-            <ons-button modifier="large" onClick="open_apply(<%=sessinfo[i].id%>, <%=j+1%>)">프로그램 선택</ons-button>
+            <ons-button class="btn_apply"  modifier="large" onClick="open_apply(<%=sessinfo[i].id%>, <%=j+1%>)">프로그램 선택</ons-button>
         </ons-card>
     <%}%>
     </ons-page>
