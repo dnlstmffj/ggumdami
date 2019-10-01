@@ -1,0 +1,60 @@
+
+
+<section class="content-header">
+      <h1>
+        홈
+        <small>구름중학교 꿈담이</small>
+      </h1>
+      <ol class="breadcrumb">
+        <li class="active"><a href="#"><i class="fa fa-dashboard"></i> 홈</a></li>
+
+
+      </ol>
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="box">
+          <div class="box-header">
+            <h3 class="box-title">프로그램 관리</h3>
+            <button type="button" class="btn btn-default pull-right">프로그램 생성</button>
+          </div>
+          <!-- /.box-header -->
+         <div class="box-body">
+            <table id="example2" class="table table-bordered table-hover" >
+              <thead>
+              <tr>
+                <th>프로그램명</th>
+                <th>교사/강사</th>
+                <th>수업 장소</th>
+                <th>카테고리</th>
+                <th>작업</th>
+              </tr>
+              </thead>
+              <tbody>
+              <%for(i=0; i<program.length; i++) {%>
+                <tr>
+                  <td><%=program[i].name%></td>
+                  <td><%=teacher[program[i].teacher].name%></td>
+                  <td><%=program[i].place%></td>
+                  <td><%=group[program[i].group]%></td>
+                  <td><button type="button" class="btn btn-info btn-sm">수정</button> <button type="button" class="btn btn-danger btn-sm">삭제</button></td>
+                </tr>
+              <%}%>
+              </tbody>
+              <tfoot>
+              <tr>
+                <th>프로그램명</th>
+                <th>교사/강사</th>
+                <th>수업 장소</th>
+                <th>카테고리</th>
+                <th>작업</th>
+              </tr>
+              </tfoot>
+           </table>
+        </div>
+        <div class="box-footer">
+        <button type="button" class="btn  btn-success">Success</button>
+        </div>
+      </div>
+    </section>

@@ -9,6 +9,7 @@ const moment = require('moment');
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 const accountRouter = require('./routes/account');
+const adminRouter = require('./routes/admin');
 
 const app = express();
 // const moment_timezone = require('moment-timezone');
@@ -228,7 +229,7 @@ app.post('/apply', function(req, res){
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/account', accountRouter);
-
+app.use('/admin', adminRouter);
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
