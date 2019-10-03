@@ -87,10 +87,19 @@ app.post('/get_teachers', function(req, res){
       res.end("500");
     } else { 
       res.json(results);
-      
     }
   });
-  
+});
+
+app.post('/get_programs_incourse', function(req, res){
+  connection.query('SELECT * FROM sessions WHERE session=' + req.body.course, function (error, results, fields) {
+    if (error) {
+      console_log(error);
+      res.end("500");
+    } else { 
+      res.json(results);
+    }
+  });
 });
 
 app.post('/get_programs', function(req, res){
@@ -137,7 +146,16 @@ app.post('/get_sessions', function(req, res){
     }
   });
 });
-
+app.post('/get_period', function(req, res){
+  connection.query('SELECT * FROM period', function (error, results, fields) {
+    if (error) {
+      console_log(error);
+      res.end("500");
+    } else { 
+      res.json(results);
+    }
+  });
+});
 app.post('/get_program_insession', function(req, res){
   connection.query('SELECT * FROM sessions WHERE id=' + req.body.id, function (error, results_session, fields) {
     if (error) {
@@ -157,7 +175,6 @@ app.post('/get_program_insession', function(req, res){
 
               results[0].sessionid = results_session[0].batch;
               results[0].which = results_session[0].id;
-              results[0].period = results_period[0].value;
               console.log(results);
               res.json(results);
 

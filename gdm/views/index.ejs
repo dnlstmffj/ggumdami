@@ -13,7 +13,7 @@
     <script src="pace/pace.js"></script> 
     <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
     <script> 
-        var teachers = [], programs=[], sessioninfo=[], sessions = [];
+        var teachers = [], programs=[], sessioninfo=[], sessions = [], curPage;
         
         //isEmpty: 변수 값 존재 여부 확인
         var isEmpty = function(value){ 
@@ -43,19 +43,62 @@
             .then(menu.close.bind(menu));
           
         };
-        function show_page_apply() {
-            document.querySelector('#Navigator').pushPage('page_apply.html', {data: {toolbar_title: 'Hello World'}});
-        }
-        function cancel(id) {
+        function loadPage() {
           $.ajax({
-            url: "/cancel",
+            url: "/get_application",
             type: "post",
-            data : {
-              id: id
+            data: {
+              class:curPage.split('_')[1]
             }
           }).done(function(results) {
-            alert(results);
+            var card_title, card_teacher, card_place, card_period, card_btn;
+            console.log(results);
+            for(var i=0; i<sessioninfo[curPage.split('_')[1]].batches; i++) {
+              console.log(i);
+              card_title = document.querySelector('#card_' + curPage.split('_')[1] + '_' + i+1 + ' .title');
+              card_teacher = document.querySelector('#card_' + curPage.split('_')[1] + '_' + i+1 + ' .teacher');
+              card_place = document.querySelector('#card_' + curPage.split('_')[1] + '_' + i+1 + ' .place');  
+              card_btn = document.querySelector('#card_' + curPage.split('_')[1] + '_' + i+1 + ' .btn_apply');
+              card_btn.setAttribute('onClick', 'apply(' + curPage.split('_')[1] + ', ' + i+1 + ')');
+              card_btn.innerHTML = "프로그램 선택";
+              card_btn.setAttribute('style', 'color: white');
+              card_title.innerHTML = i+1 + '기. 수강신청이 필요합니다.';
+              card_teacher.innerHTML = "<div class='center list-item__center'></div>";
+              card_place.innerHTML = "<div class='center list-item__center'></div>";
+            }
+            for(var i=0; i<results.length; i++) {
+              card_title = document.querySelector('#card_' + curPage.split('_')[1] + '_' + sessions[results[i].which].batch + ' .title');
+              card_teacher = document.querySelector('#card_' + curPage.split('_')[1] + '_' + sessions[results[i].which].batch + ' .teacher');
+              card_place = document.querySelector('#card_' + curPage.split('_')[1] + '_' + sessions[results[i].which].batch + ' .place');  
+              card_btn = document.querySelector('#card_' + curPage.split('_')[1] + '_' + sessions[results[i].which].batch + ' .btn_apply');
+              card_btn.setAttribute('onClick', 'cancel(' + results[i].id + ')');
+              card_btn.innerHTML = "신청 취소";
+              card_btn.setAttribute('style', 'background-color: red; color: white');
+              card_title.innerHTML = sessions[results[i].which].batch + '기. ' + programs[sessions[results[i].which].program].name;
+              card_teacher.innerHTML = "<div class='center list-item__center'>" + teachers[programs[sessions[results[i].which].program].teacher].name + "</div>";
+              card_place.innerHTML = "<div class='center list-item__center'>" + programs[sessions[results[i].which].program].place + "</div>";
+            }  
           });
+        }
+        function cancel(id) {
+          ons
+          .notification.confirm({message: '정말로 신청을 취소할까요?'})
+          .then(function(value) {
+            if(value == 1) {
+              $.ajax({
+                url: "/cancel",
+                type: "post",
+                data : {
+                  id: id
+                }
+              }).done(function(results) {
+                
+                loadPage();
+                ons.notification.alert('신청을 성공적으로 취소했어요.');
+              });
+            }
+          });
+          
         }
         function apply(id, session) {
           $.ajax({
@@ -67,7 +110,7 @@
             }
           }).done(function(results) {
             document.querySelector('#navigator_' + session).popPage();
-            fn.load('navigate_container_' + session + '.html');
+            loadPage();
             
           });
         }
@@ -105,6 +148,7 @@
               sessions[results[i].id] = results[i];
             }
           });
+
         }
         
         function open_apply(sess, batch) {
@@ -122,42 +166,32 @@
                 page.querySelector('ons-toolbar .center').innerHTML = page.data.title;
 
             } else if (page.id.indexOf('menu_') !== -1 && page.id !="menu_home") {
-              let str = page.id;
+              curPage = page.id;
+              loadPage();
+              /*
               $.ajax({
                 url: "/get_application",
                 type: "post",
+                async: false,
                 data: {
                   class:str.split('_')[1]
                 }
               }).done(function(results) {
-                console.log(results);
                 var card_title, card_teacher, card_place, card_period, card_btn;
                 for(var i=0; i<results.length; i++) {
                   card_title = document.querySelector('#card_' + str.split('_')[1] + '_' + sessions[results[i].which].batch + ' .title');
                   card_teacher = document.querySelector('#card_' + str.split('_')[1] + '_' + sessions[results[i].which].batch + ' .teacher');
                   card_place = document.querySelector('#card_' + str.split('_')[1] + '_' + sessions[results[i].which].batch + ' .place');  
-                  card_period = document.querySelector('#card_' + str.split('_')[1] + '_' + sessions[results[i].which].batch + ' .period'); 
-                  card_btn = document.querySelector('#card_' + str.split('_')[1] + '_' + sessions[results[i].which].batch + ' .btn_apply'); 
+                  card_btn = document.querySelector('#card_' + str.split('_')[1] + '_' + sessions[results[i].which].batch + ' .btn_apply');
                   card_btn.setAttribute('onClick', 'cancel(' + results[i].id + ')');
                   card_btn.innerHTML = "신청 취소";
                   card_btn.setAttribute('style', 'background-color: red; color: white');
-                  $.ajax({
-                    url: "/get_program_insession",
-                    type: "post",
-                    data: {
-                      id:results[i].which
-                    }
-                  }).done(function(results_program) {
-                    card_title.innerHTML = results_program[0].sessionid + '기. ' + results_program[0].name;
-                    card_teacher.innerHTML = "<div class='center list-item__center'>" + teachers[results_program[0].teacher].name + "</div>";
-                    card_place.innerHTML = "<div class='center list-item__center'>" + results_program[0].place + "</div>";
-                    card_period.innerHTML = "<div class='center list-item__center'>" + results_program[0].period + "</div>";
-                  });
-                }
-                
-                
+                  card_title.innerHTML = sessions[results[i].which].batch + '기. ' + programs[sessions[results[i].which].program].name;
+                  card_teacher.innerHTML = "<div class='center list-item__center'>" + teachers[programs[sessions[results[i].which].program].teacher].name + "</div>";
+                  card_place.innerHTML = "<div class='center list-item__center'>" + programs[sessions[results[i].which].program].place + "</div>";
+                }  
               });
-              
+              */
             }  else if (page.id == 'page_apply') {
               var content;
               $.ajax({
@@ -280,7 +314,7 @@
                 <ons-list-header>교육장소</ons-list-header>
                 <ons-list-item class="place"></ons-list-item>
                 <ons-list-header>교육기간</ons-list-header>
-                <ons-list-item class="period"></ons-list-item>
+                <ons-list-item class="period"><%=period[sessinfo[i].id][j+1]%></ons-list-item>
               </ons-list>
             </div> <br>
             <ons-button class="btn_apply"  modifier="large" onClick="open_apply(<%=sessinfo[i].id%>, <%=j+1%>)">프로그램 선택</ons-button>

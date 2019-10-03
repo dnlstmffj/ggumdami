@@ -19,7 +19,11 @@ const isEmpty = function(value){
 };
 /* GET home page. */
 let data_groups, data_applications, date_info;
-let data_programs=[], data_sessions=[], data_settings=[], data_teachers=[], data_preferences=[], data_sessinfo=[], data_sessions_indexed;
+let data_programs=[], data_sessions=[], data_settings=[], data_teachers=[], data_preferences=[], data_sessinfo=[], data_sessions_indexed, data_period=[];
+for(i=0; i<10; i++) {
+	
+  data_period[i] = [];
+}
 router.get('/', function(req, res, next) {
   console.log(req.session.stuid);
   if(isEmpty(req.session.stuid)) {
@@ -95,16 +99,31 @@ router.get('/', function(req, res, next) {
     data_sessinfo = results;
 
   });
+    connection.query('SELECT * FROM period ORDER BY session', function (error, results, fields) {
+      if (error) {
+          console.log(error);
+      }
+      console.log(results);
+      
+      for(var i=0; i<results.length; i++) {
+        if(i>0) {
+          if(results[i].session != results[i-1].session) data_period[results[i].session] = [];
+        }
+        
+        data_period[results[i].session][results[i].batch] = results[i].value;
+      }
+      console.log(data_period)
+  });
   connection.query('SELECT * FROM teachers', function (error, results, fields) {
     if (error) {
-        console.log(error);
+        console.long(error);
     }
     console.log(results);
     for(var i=0; i<results.length; i++) {
       data_teachers[results[i].id] = results[i];
     }
 
-    res.render('index', { applications: data_applications, group:data_groups, program:data_programs, session:data_sessions, setting:data_settings, teacher:data_teachers, info:data_info, sessinfo:data_sessinfo, sessindexed: data_sessions_indexed});
+    res.render('index', { applications: data_applications, group:data_groups, program:data_programs, session:data_sessions, setting:data_settings, teacher:data_teachers, info:data_info, sessinfo:data_sessinfo, sessindexed: data_sessions_indexed, period: data_period});
   });
   }
   
