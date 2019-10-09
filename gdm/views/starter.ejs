@@ -493,17 +493,18 @@ content-wrapper
           <ul class="treeview-menu">
             <li><a href="#"><i class="fa fa-plus"></i> 새 프로젝트</a></li>
             
-            <%=for(i=0; i<project.length; i++) {%>
+            <%=for(var i=0; i<project.length; i++) {%>
             <li class="treeview">
               <a href="#"><i class="fa fa-th"></i> <%=project[i].name%>
                 <span class="pull-right-container">
                   <i class="fa fa-angle-left pull-right"></i>
                 </span>
               </a>
+              <%for(var j=0; j<session_info[i].length; j++) {%>
               <ul class="treeview-menu">
                 <li><a href="#"><i class="fa fa-plus"></i> 새 수강과정</a></li>
                 <li class="treeview">
-                  <a href="#"><i class="fa fa-th-large"></i> 주제선택프로그램
+                  <a href="#"><i class="fa fa-th-large"></i> <%=session_info[i][j].name%>
                     <span class="pull-right-container">
                       <i class="fa fa-angle-left pull-right"></i>
                     </span>
@@ -516,7 +517,9 @@ content-wrapper
                   <li><a href="#"><i class="fa fa-cog"></i> 설정</a></li>
                 </li>
               </ul>
+              <%}%>
             </li>
+
             <%}%>
         
           </ul>
