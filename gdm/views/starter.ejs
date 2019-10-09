@@ -149,6 +149,10 @@
     window.onload = function () {
       $.ajax({
         url: "/get_programinfo",
+        data : {
+          project: 'ggumdami',
+          isAdmin: 1
+        },
         type: "POST"
       }).done(function(results) {
         for(var i=0; i<results.length; i++) {
@@ -179,6 +183,9 @@
     function editCourseNavigate() {
       $.ajax({
         url: "/get_groups",
+        data : {
+          project: 'ggumdami',
+        },
         type: "POST"
       }).done(function(results) {
           group = results;
@@ -186,9 +193,12 @@
       
       $.ajax({
         url: "/get_limits",
+        data : {
+          project: 'ggumdami'
+        },
         type: "POST",
         data : {
-          course: 1
+          project: 'ggumdami'
         }
       }).done(function(results) {
         console.log(results);
@@ -493,16 +503,18 @@ content-wrapper
           <ul class="treeview-menu">
             <li><a href="#"><i class="fa fa-plus"></i> 새 프로젝트</a></li>
             
-            <%=for(var i=0; i<project.length; i++) {%>
+            <%for(var i=0; i<project.length; i++) {%>
             <li class="treeview">
               <a href="#"><i class="fa fa-th"></i> <%=project[i].name%>
                 <span class="pull-right-container">
                   <i class="fa fa-angle-left pull-right"></i>
                 </span>
               </a>
-              <%for(var j=0; j<session_info[i].length; j++) {%>
+              
               <ul class="treeview-menu">
                 <li><a href="#"><i class="fa fa-plus"></i> 새 수강과정</a></li>
+                <%for(var j=0; j<session_info[i].length; j++) {%>
+                
                 <li class="treeview">
                   <a href="#"><i class="fa fa-th-large"></i> <%=session_info[i][j].name%>
                     <span class="pull-right-container">
@@ -512,12 +524,11 @@ content-wrapper
                   <ul class="treeview-menu">
                     <li><a href="#"><i class="fa fa-align-justify"></i> 세션</a></li>
                     <li><a href="#"><i class="fa fa-bullseye"></i> 프로그램</a></li>
-                    <li><a href="#"><i class="fa fa-cog"></i> 설정</a></li>
                   </ul>
-                  <li><a href="#"><i class="fa fa-cog"></i> 설정</a></li>
+                  <%}%>
                 </li>
               </ul>
-              <%}%>
+              
             </li>
 
             <%}%>

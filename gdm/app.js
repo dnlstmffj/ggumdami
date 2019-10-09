@@ -96,7 +96,7 @@ app.post('/get_teachers', function(req, res){
 });
 
 app.post('/get_programs_incourse', function(req, res){
-  connection.query('SELECT * FROM ' + req.session.project + '_sessions WHERE session=' + req.body.course + ' ORDER BY batch', function (error, results, fields) {
+  connection.query('SELECT * FROM ' + req.body.project + '_sessions WHERE session=' + req.body.course + ' ORDER BY batch', function (error, results, fields) {
     if (error) {
       console_log(error);
       res.end("500");
@@ -120,7 +120,7 @@ app.post('/get_programs', function(req, res){
 
 app.post('/get_programinfo', function(req, res){
   var project;
-  if(req.session.isadmin === 1) project=req.body.project;
+  if(req.body.isAdmin == 1) project=req.body.project; //session으로 수정하기!!! -------------------------------------------------------------------------------------------------------------------------------------------------------------------
   else project=req.session.project;
   connection.query('SELECT * FROM ' + project + '_programs', function (error, results, fields) {
     if (error) {
@@ -145,7 +145,7 @@ app.post('/get_sessioninfo', function(req, res){
 });
 
 app.post('/get_limits', function(req, res){
-  connection.query('SELECT * FROM ' + req.session.project + '_limits', function (error, results, fields) {
+  connection.query('SELECT * FROM ' + req.body.project + '_limits', function (error, results, fields) {
     if (error) {
       console_log(error);
       res.end("500");
@@ -282,18 +282,18 @@ app.post('/editcourseapply', function(req, res){
   var programs = JSON.parse(req.body.programs);
   var maxes = JSON.parse(req.body.maxes)
   var groups = JSON.parse(req.body.group);
-  connection.query('UPDATE ' + req.session.project + '_period SET value=\'' + req.body.period + '\' WHERE session=' + req.body.course + ' AND batch=' + req.body.batch, function (error, results, fields) {
+  connection.query('UPDATE ' + req.body.project + '_period SET value=\'' + req.body.period + '\' WHERE session=' + req.body.course + ' AND batch=' + req.body.batch, function (error, results, fields) {
     if (error) {
       console_log(error);
       res.end("500");
     } else {
-      connection.query('DELETE FROM ' + req.session.project + '_sessions WHERE session=' + req.body.course + ' AND batch=' + req.body.batch, function (error, results, fields) {
+      connection.query('DELETE FROM ' + req.body.project + '_sessions WHERE session=' + req.body.course + ' AND batch=' + req.body.batch, function (error, results, fields) {
         if (error) {
           console_log(error);
           res.end("500");
         } else { 
-          var query = 'INSERT INTO ' + req.session.project + '_sessions (session, batch, program) VALUES ';
-          var queryLimit = 'INSERT INTO ' + req.session.project + '_limits (which, `group`, `max`) VALUES ';
+          var query = 'INSERT INTO ' + req.body.project + '_sessions (session, batch, program) VALUES ';
+          var queryLimit = 'INSERT INTO ' + req.body.project + '_limits (which, `group`, `max`) VALUES ';
           for(i=0; i<programs.length; i++) {
             query += '(' + req.body.course + ', ' + req.body.batch + ', ' + programs[i] + ')';
             if(i != programs.length-1) query += ', ';
@@ -306,7 +306,7 @@ app.post('/editcourseapply', function(req, res){
           connection.query(query, function (error, results_insert, fields) {
             if (error) console_log(error);
             console.log(results_insert);
-            connection.query('SELECT * FROM ' + req.session.project + '_sessions WHERE id >=' + results_insert.insertId, function (error, results, fields) { 
+            connection.query('SELECT * FROM ' + req.body.project + '_sessions WHERE id >=' + results_insert.insertId, function (error, results, fields) { 
               if (error) {
                 console_log(error);
                 res.end("500");
