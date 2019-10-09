@@ -39,8 +39,8 @@
           </form>
         </div>
         <div class="box-footer">
-            <button type="submit" class="btn btn-primary">저장</button>
-          </div>
+          <button type="submit" class="btn btn-primary">저장</button>
+        </div>
         <!-- /.box-body -->
       </div>
       <%for(i=0; i<course[0].batches; i++) {%>
@@ -49,7 +49,7 @@
             <h3 class="box-title"><%=i+1%>기 정보</h3>
           </div>
           <!-- /.box-header -->
-          <div class="box-body">
+          <div class="box-body batch<%=i+1%>">
             <form role="form">
               <!-- text input -->
               <div class="form-group">
@@ -59,57 +59,87 @@
                   <div class="input-group-addon">
                     <i class="fa fa-calendar"></i>
                   </div>
-                  <input type="text" class="form-control pull-right" id="reservation">
+                  <input type="text" class="form-control pull-right period" value="<%=period[1][i+1]%>">
                 </div>
                 <!-- /.input group -->
               </div>
               <div class="form-group">
                   <label>프로그램</label>
-                  <select class="form-control select2 batch<%=i+1%>" multiple="multiple" data-placeholder="프로그램 선택" style="width: 100%;">
+                  <select class="form-control select2 programlist" multiple="multiple" data-placeholder="프로그램 선택" style="width: 100%;">
                     <%for(var j=0; j<program.length; j++) {%>
-                      <option class="program<%=program[j].id%>" active><%=program[j].name%></option>
+                      <option class="program<%=program[j].id%>" value="<%=program[j].id%>"><%=program[j].name%></option>
                     <%}%>
                   </select>
                 </div>
             </form>
-            <table id="example2" class="table table-bordered table-hover" >
+            <table  class="table table-bordered table-hover" style="text-align: center">
               <thead>
-              <tr>
-                <th>프로그램명</th>
+              <tr >
+                <th style="width: 15%">프로그램명</th>
                 <th>최대신청인원</th>
               </tr>
               </thead>
-              <tbody>
-              <%for(var j=0; j<program.length; j++) {%>
-                <tr>
-                  <td><%=program[j].name%></td>
-                  <td>0</td>
-                </tr>
-              <%}%>
+              <tbody id="table<%=i+1%>">
+
               </tbody>
-              <tfoot>
-              <tr>
-                <th>프로그램명</th>
-                <th>최대신청인원</th>
-              </tr>
-              </tfoot>
            </table>
           </div>
           <div class="box-footer">
-            <button type="submit" class="btn btn-primary">저장</button>
+            <button type="submit" class="btn btn-primary" onClick="editCourseApply(<%=i+1%>)">저장</button>
           </div>
           <!-- /.box-body -->
         </div>
       <%}%>
+      <div class="box box-warning">
+        <div class="box-header with-border">
+          <h3 class="box-title">조건 설정</h3>
+        </div>
+        <!-- /.box-header -->
+        <div class="box-body">
+          <form role="form">
+            <!-- text input -->
+            <div class="form-group">
+              <div class="checkbox">
+                <label>
+                  <%if(course[0].grouprestrict == 1) { %>
+                    <input type="checkbox" checked> 다른 기수에서 수강신청한 프로그램과 같은 프로그램 그룹에 속한 프로그램 신청 불가
+                  <% } else {%>
+                    <input type="checkbox"> 다른 기수에서 수강신청한 프로그램과 같은 프로그램 그룹에 속한 프로그램 신청 불가
+                  <% } %>
+                  
+                </label>
+              </div>
+              <div class="checkbox">
+                <label>
+                  <%if(course[0].programrestrict == 1) { %>
+                    <input type="checkbox" checked> 다른 기수에서 수강신청한 프로그램과 같은 프로그램 신청 불가
+                  <% } else {%>
+                    <input type="checkbox"> 다른 기수에서 수강신청한 프로그램과 같은 프로그램 신청 불가
+                  <% } %>
+                </label>
+              </div>
+
+            </div>
+
+          </form>
+        </div>
+        <div class="box-footer">
+          <button type="submit" class="btn btn-primary">저장</button>
+        </div>
+        <!-- /.box-body -->
+      </div>
       <!-- /.box -->
     </section>
-
+  
 <script>
   $(document).ready(function () {
     $('.sidebar-menu').tree()
   })
   //Date range picker
-    $('#reservation').daterangepicker()
+  <%for(i=0; i<course[0].batches; i++) {%>
+    $('.batch<%=i+1%> .period').daterangepicker()
+  <%}%>
+    
     //Date range picker with time picker
     $('#reservationtime').daterangepicker({ timePicker: true, timePickerIncrement: 30, locale: { format: 'MM/DD/YYYY hh:mm A' }})
     $('.select2').select2()

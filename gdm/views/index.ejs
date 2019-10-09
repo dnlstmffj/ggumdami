@@ -13,7 +13,7 @@
     <script src="pace/pace.js"></script> 
     <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
     <script> 
-        var teachers = [], programs=[], sessioninfo=[], sessions = [], curPage;
+        var teachers = [], programs=[], sessioninfo=[], sessions = [], curPage, groups=[], prog_groups=[];
         
         //isEmpty: 변수 값 존재 여부 확인
         var isEmpty = function(value){ 
@@ -40,10 +40,25 @@
           var content = document.getElementById('content');
           var menu = document.getElementById('menu');
           content.load(page)
-            .then(menu.close.bind(menu));
-          
+            .then(menu.close.bind(menu)); 
         };
+        
         function loadPage() {
+          var card_title, card_teacher, card_place, card_period, card_btn;
+          for(var i=0; i<sessioninfo[curPage.split('_')[1]].batches; i++) {
+            console.log(sessioninfo[curPage.split('_')[1]].batches);
+            card_title = document.querySelector('#card_' + curPage.split('_')[1] + '_' + (i+1) + ' .title');
+            card_teacher = document.querySelector('#card_' + curPage.split('_')[1] + '_' + (i+1) + ' .teacher');
+            card_place = document.querySelector('#card_' + curPage.split('_')[1] + '_' + (i+1) + ' .place');  
+            card_btn = document.querySelector('#card_' + curPage.split('_')[1] + '_' + (i+1) + ' .btn_apply');
+            console.log('d' + curPage.split('_')[1]  + ', ' +  i+1);
+            card_btn.setAttribute('onClick', 'open_apply(' + curPage.split('_')[1] + ', ' + (i+1) + ')');
+            card_btn.innerHTML = "프로그램 선택";
+            card_btn.setAttribute('style', 'color: white');
+            card_title.innerHTML = (i+1) + '기. 수강신청이 필요해요';
+            card_teacher.innerHTML = "<div class='center list-item__center'></div>";
+            card_place.innerHTML = "<div class='center list-item__center'></div>";
+          }
           $.ajax({
             url: "/get_application",
             type: "post",
@@ -51,21 +66,7 @@
               class:curPage.split('_')[1]
             }
           }).done(function(results) {
-            var card_title, card_teacher, card_place, card_period, card_btn;
             console.log(results);
-            for(var i=0; i<sessioninfo[curPage.split('_')[1]].batches; i++) {
-              console.log(i);
-              card_title = document.querySelector('#card_' + curPage.split('_')[1] + '_' + i+1 + ' .title');
-              card_teacher = document.querySelector('#card_' + curPage.split('_')[1] + '_' + i+1 + ' .teacher');
-              card_place = document.querySelector('#card_' + curPage.split('_')[1] + '_' + i+1 + ' .place');  
-              card_btn = document.querySelector('#card_' + curPage.split('_')[1] + '_' + i+1 + ' .btn_apply');
-              card_btn.setAttribute('onClick', 'apply(' + curPage.split('_')[1] + ', ' + i+1 + ')');
-              card_btn.innerHTML = "프로그램 선택";
-              card_btn.setAttribute('style', 'color: white');
-              card_title.innerHTML = i+1 + '기. 수강신청이 필요합니다.';
-              card_teacher.innerHTML = "<div class='center list-item__center'></div>";
-              card_place.innerHTML = "<div class='center list-item__center'></div>";
-            }
             for(var i=0; i<results.length; i++) {
               card_title = document.querySelector('#card_' + curPage.split('_')[1] + '_' + sessions[results[i].which].batch + ' .title');
               card_teacher = document.querySelector('#card_' + curPage.split('_')[1] + '_' + sessions[results[i].which].batch + ' .teacher');
@@ -92,31 +93,41 @@
                   id: id
                 }
               }).done(function(results) {
-                
+                ons.notification.toast('신청을 성공적으로 취소했어요. ' , { timeout: 2000 });
                 loadPage();
-                ons.notification.alert('신청을 성공적으로 취소했어요.');
+              });
+            }0
+          });
+        }
+        function apply(id, session) {
+          ons
+          .notification.confirm({message: '정말로 이 프로그램으로 신청할까요?'})
+          .then(function(value) {
+            if(value == 1) {
+              $.ajax({
+                url: "/apply",
+                type: "post",
+                data : {
+                  which: id,
+                  session:session
+                }
+              }).done(function(results) {
+                if(results == '200') {
+                  ons.notification.toast('신청을 성공적으로 완료했어요. ' , { timeout: 2000 });
+                } else if (results == '300') {
+                  
+                  ons.notification.alert('정원초과로 신청이 마감된 프로그램입니다.');
+                }
+                document.querySelector('#navigator_' + session).popPage();
+                loadPage();
               });
             }
           });
           
         }
-        function apply(id, session) {
-          $.ajax({
-            url: "/apply",
-            type: "post",
-            data : {
-              which: id,
-              session:session
-            }
-          }).done(function(results) {
-            document.querySelector('#navigator_' + session).popPage();
-            loadPage();
-            
-          });
-        }
         window.onload = function () {
           updateForDarkModeChange();
-        $.ajax({
+          $.ajax({
             url: "/get_teachers",
             type: "post"
           }).done(function(results) {
@@ -148,7 +159,22 @@
               sessions[results[i].id] = results[i];
             }
           });
-
+          $.ajax({
+            url: "/get_groups",
+            type: "post"
+          }).done(function(results) {
+            for(var i=0; i<results.length; i++) {
+              groups[results[i].id] = results[i];
+            }
+          });
+          $.ajax({
+            url: "/get_programgroups",
+            type: "post"
+          }).done(function(results) {
+            for(var i=0; i<results.length; i++) {
+              prog_groups[results[i].id] = results[i];
+            }
+          });
         }
         
         function open_apply(sess, batch) {
@@ -158,40 +184,9 @@
         document.addEventListener('init', function(event) {
             Pace.restart();
             var page = event.target;
-            if (page.id === 'menu_topic') {
-                page.querySelector('#push-button').onclick = function() {
-                    document.querySelector('#Navigator').pushPage('page_apply.html', {data: {title: 'Page 2'}});
-                };
-            } else if (page.id === 'page2') {
-                page.querySelector('ons-toolbar .center').innerHTML = page.data.title;
-
-            } else if (page.id.indexOf('menu_') !== -1 && page.id !="menu_home") {
+            if (page.id.indexOf('menu_') !== -1 && page.id !="menu_home") {
               curPage = page.id;
               loadPage();
-              /*
-              $.ajax({
-                url: "/get_application",
-                type: "post",
-                async: false,
-                data: {
-                  class:str.split('_')[1]
-                }
-              }).done(function(results) {
-                var card_title, card_teacher, card_place, card_period, card_btn;
-                for(var i=0; i<results.length; i++) {
-                  card_title = document.querySelector('#card_' + str.split('_')[1] + '_' + sessions[results[i].which].batch + ' .title');
-                  card_teacher = document.querySelector('#card_' + str.split('_')[1] + '_' + sessions[results[i].which].batch + ' .teacher');
-                  card_place = document.querySelector('#card_' + str.split('_')[1] + '_' + sessions[results[i].which].batch + ' .place');  
-                  card_btn = document.querySelector('#card_' + str.split('_')[1] + '_' + sessions[results[i].which].batch + ' .btn_apply');
-                  card_btn.setAttribute('onClick', 'cancel(' + results[i].id + ')');
-                  card_btn.innerHTML = "신청 취소";
-                  card_btn.setAttribute('style', 'background-color: red; color: white');
-                  card_title.innerHTML = sessions[results[i].which].batch + '기. ' + programs[sessions[results[i].which].program].name;
-                  card_teacher.innerHTML = "<div class='center list-item__center'>" + teachers[programs[sessions[results[i].which].program].teacher].name + "</div>";
-                  card_place.innerHTML = "<div class='center list-item__center'>" + programs[sessions[results[i].which].program].place + "</div>";
-                }  
-              });
-              */
             }  else if (page.id == 'page_apply') {
               var content;
               $.ajax({
@@ -202,12 +197,12 @@
                   batch: page.data.batch
                 }
               }).done(function(results) {
-                
                 console.log(results);
-                for(var i=0; i<results.length; i++) {
-                  content = "<ons-list-item onClick='apply(" + results[i].id + ', ' + page.data.session + ")' class='list-item' tappable><div class='center'> <span class='list-item__title'>" + programs[results[i].program].name + "</span><span class='list-item__subtitle'>"+ teachers[programs[results[i].program].teacher].name +"</span> </div> <div class='right'>" + results[i].cur + "/" + results[i].max +"</div> </ons-list-item>";
+                $('#list_programs').append("<ons-list-heder id='toolbar_apply' class='list-header'>" + prog_groups[results[0].group].name + "</ons-list-heder>");
+                for(var i=0; i<results.length; i++) {     
+                  if(i>0 && results[i].group != results[i-1].group) $('#list_programs').append("<ons-list-heder id='toolbar_apply' class='list-header'>" + prog_groups[results[i].group].name + "</ons-list-heder>");
+                  content = "<ons-list-item onClick='apply(" + results[i].id + ', ' + page.data.session + ")' class='list-item' tappable><div class='center'> <span class='list-item__title'>" + programs[results[i].program].name + "</span><span class='list-item__subtitle'>"+ teachers[programs[results[i].program].teacher].name +"</span> </div> <div class='right'>" + results[i].cur + "/" + results[i].max +"</div> </ons-list-item>"; //중단점a
                   $('#list_programs').append(content);
-                  
                 }
                 page.querySelector('ons-toolbar .center').innerHTML = sessioninfo[page.data.session].name + " " + page.data.batch + "기";
               });
@@ -221,7 +216,7 @@
     <link rel="stylesheet" href="https://unpkg.com/onsenui/css/onsenui.css">
     <link id="csslink" rel="stylesheet" href="https://unpkg.com/onsenui/css/onsen-css-components.min.css">
     <link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR:400,500,700&display=swap&subset=korean" rel="stylesheet">
-    <script src="https://unpkg.com/onsenui/js/onsenui.min.js"></script>
+    <script src="/assets/onsenui.min.js"></script>
     
     <style>
         .page {
@@ -305,7 +300,7 @@
       <% for(var j=0; j<sessinfo[i].batches; j++) {%>
         <ons-card id="card_<%=sessinfo[i].id%>_<%=j+1%>">
             <div class="title">
-              <%=j+1%>기. 수강신청이 필요합니다. 
+
             </div>
             <div class="content">
               <ons-list>
@@ -329,6 +324,7 @@
         <ons-page id="page_apply">
             <ons-toolbar>
                 <div class="left"><ons-back-button>Back</ons-back-button></div>
+				
                 <div id="toolbar_apply" class="center">이부분을 자동으로 생성되게 해볼게요.</div>
             </ons-toolbar>
             <ons-list id="list_programs"/>

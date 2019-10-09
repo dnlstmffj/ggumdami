@@ -31,17 +31,21 @@
       var name = document.getElementById('name').value;
       var birthdate = document.getElementById('birthdate').value;
       var phonenumber = document.getElementById('phonenumber').value;
+      var project = document.getElementById('select-project');
+      var projectValue = project.options[project.selectedIndex].value;
+      console.log(projectValue);
       $.ajax({
           url: "/login",
           type: "post",
           data: {
             id:name,
             birthdate:birthdate,
-            phone:phonenumber
+            phone:phonenumber,
+            project:projectValue
           }
         }).done(function(results) {
  
-          if(results == "200") {
+          if(results == "203") {
             window.location.href = '/';
           } else if (results == "403") {
             alert("입력한 정보가 올바르지 않습니다.");          
@@ -57,25 +61,30 @@
 </head>
 <body>
 	    
-		<div class="container-login100">
+		<div class="container-login100"> 
 			<div class="wrap-login100 p-t-85 p-b-20">
-				<form class="login100-form validate-form">
+				<div class="login100-form validate-form">
 					<span class="login100-form-title p-b-70">
 						<%=title%>
 					</span>
-
+            <select id="select-project" class="input100">
+              <%for(i=0; i<project.length; i++) {%>
+                <option value="<%=project[i].class%>"> <%=project[i].name%></option>
+              <%}%>
+            </select>
 					<div class="wrap-input100 validate-input m-t-85 m-b-35" data-validate = "학번을 입력하세요.">
-						<input id="name" class="input100" type="number" name="stuid">
+						<input id="name" class="input100" type="number" >
 						<span class="focus-input100" data-placeholder="학번"></span>
 					</div>
           <div class="wrap-input100 validate-input m-b-50" data-validate = "생년월일을 입력하세요.">
-						<input id="birthdate" class="input100" type="number" name="birthdate">
+						<input id="birthdate" class="input100" type="number" >
 						<span class="focus-input100" data-placeholder="생년월일"></span>
 					</div>
           <div class="wrap-input100 validate-input m-b-50" data-validate = "휴대전화번호를 입력하세요.">
-						<input id="phonenumber" class="input100" type="number" name="birthdate">
+						<input id="phonenumber" class="input100" type="number">
 						<span class="focus-input100" data-placeholder="휴대전화번호"></span>
 					</div>
+
 					<div class="container-login100-form-btn">
 						<button onClick="login()" class="login100-form-btn">
 							로그인
@@ -103,7 +112,7 @@
 						</li>
 					</ul>
 
-				</form>
+				</div>
 			</div>
 		</div>
 	</div>

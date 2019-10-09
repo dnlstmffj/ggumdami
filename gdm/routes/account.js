@@ -8,7 +8,7 @@ var connection = mysql.createConnection({
     host     : 'speakeasy.lucomstudio.com',
     user     : 'drecat',
     password : 'Hello00!',
-    database : 'gdmroot'
+    database : 'ggumdami'
 });
 moment.tz.setDefault("Asia/Seoul");
 connection.connect();
@@ -19,12 +19,18 @@ const isEmpty = function(value){
 };
 /* GET home page. */
 router.get('/', function(req, res, next) {
-
+  var data_projects = [];
+  connection.query('SELECT * FROM projects', function (error, results, fields) {
+    if (error) {
+        console.log(error);
+    }
+    data_projects = results;
+  });
   connection.query('SELECT * FROM settings WHERE id=1', function (error, results, fields) {
     if (error) {
         console.log(error);
     }
-    res.render('account', {title:results[0].value});
+    res.render('account', {title:results[0].value, project:data_projects});
   });
 });
 

@@ -36,8 +36,96 @@
   <!-- AdminLTE Skins. Choose a skin from the css/skins
        folder instead of downloading all of them to reduce the load. -->
   <link rel="stylesheet" href="../dist/css/skins/_all-skins.min.css">
-  <script>
+  <style>
+
+    /** SPINNER CREATION **/
+
+    .loader {
+      position: relative;
+      text-align: center;
+      margin: 15px auto 35px auto;
+      z-index: 9999;
+      display: block;
+      width: 80px;
+      height: 80px;
+      border: 10px solid rgba(0, 0, 0, .3);
+      border-radius: 50%;
+      border-top-color: #000;
+      animation: spin 1s ease-in-out infinite;
+      -webkit-animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to {
+        -webkit-transform: rotate(360deg);
+      }
+    }
+
+    @-webkit-keyframes spin {
+      to {
+        -webkit-transform: rotate(360deg);
+      }
+    }
+
+    label{
+      display: inline;
+    }
+    .max{
+      display: inline;
+      width: 12%;
+    }
     
+    /** MODAL STYLING **/
+
+    .modal-content {
+      border-radius: 0px;
+      box-shadow: 0 0 20px 8px rgba(0, 0, 0, 0.7);
+    }
+
+    .modal-backdrop.show {
+      opacity: 0.75;
+    }
+
+    .loader-txt {
+      p {
+        font-size: 13px;
+        color: #666;
+        small {
+          font-size: 11.5px;
+          color: #999;
+        }
+      }
+    }
+
+    #output {
+      padding: 25px 15px;
+      background: #222;
+      border: 1px solid #222;
+      max-width: 350px;
+      margin: 35px auto;
+      font-family: 'Roboto', sans-serif !important;
+      p.subtle {
+        color: #555;
+        font-style: italic;
+        font-family: 'Roboto', sans-serif !important;
+      }
+      h4 {
+        font-weight: 300 !important;
+        font-size: 1.1em;
+        font-family: 'Roboto', sans-serif !important;
+      }
+      p {
+        font-family: 'Roboto', sans-serif !important;
+        font-size: 0.9em;
+        b {
+          text-transform: uppercase;
+          text-decoration: underline;
+        }
+      }
+    }
+  </style>
+  <script>
+    var programs=[], data_period=[], limits=[], group=[];
     function pageNavigate(page) {
       $.ajax({
         url: page,
@@ -55,14 +143,22 @@
           'info'        : true,
           'autoWidth'   : true
         })
-
       });
     }
     
     window.onload = function () {
+      $.ajax({
+        url: "/get_programinfo",
+        type: "POST"
+      }).done(function(results) {
+        for(var i=0; i<results.length; i++) {
+          programs[results[i].id] = results[i];
+        }
+      });
       
       pageNavigate('/admin/home');
     }
+    
     function editProgramNavigate(page) {
       $.ajax({
         url: '/admin/edit_programs',
@@ -79,7 +175,30 @@
         $('.content-wrapper').html(results);
       });
     }
+    
     function editCourseNavigate() {
+      $.ajax({
+        url: "/get_groups",
+        type: "POST"
+      }).done(function(results) {
+          group = results;
+      });
+      
+      $.ajax({
+        url: "/get_limits",
+        type: "POST",
+        data : {
+          course: 1
+        }
+      }).done(function(results) {
+        console.log(results);
+        limits[results[0].which] = [];
+        for(var i=0; i<results.length; i++) {
+          if(i> 0) if(results[i-1].which != results[i].which) limits[results[i].which] = [];
+          limits[results[i].which][results[i].group] = results[i];
+        }
+        console.log(limits);
+      });
       $.ajax({
         url: '/admin/edit_course',
         type : "GET",
@@ -89,7 +208,6 @@
           course: 1
         },
         cache : false
-        
       }).done(function(results) {
         $('.content-wrapper').children().remove();
         $('.content-wrapper').html(results);
@@ -104,13 +222,76 @@
           cache : false
 
         }).done(function(results) {
+          var code='';
           console.log(results);
-          for(i=0; i<results.length; i++) {
-            document.querySelector('.batch' + results[i].batch + ' .program' + results[i].program).setAttribute( 'selected', 'selected');
+          for(var i=0; i<results.length; i++) {
+            document.querySelector('.batch' + results[i].batch + ' .programlist .program' + results[i].program).setAttribute( 'selected', 'selected');
+            /*
+            for(var j=0; j<limits[results[i].id].length; j++) {
+              code += "<label>" + limits[results[i].id][j].group + "</label><input type='text' class='form-control max" + limits[results[i].id][j].group + "'" + results[i].program + "' data-program='" + results[i].program + "' placeholder='최대 수강 가능 인원' value='" + results[i].max +" '>";
+              console.log(code);
+            }
+            */
+
+            for(j=0; j<group.length; j++) {
+              code += "<label>" + group[j].name + "</label>  <input type='text'  class='form-control max group" + j + "' data-groupid='" + group[j].id + "' placeholder='인원수' value=" + limits[results[i].id][group[j].id].max + ">   ";
+            }
+            console.log(code);
+            $('#table' + results[i].batch).append("<tr><td>" + programs[results[i].program].name + "</td><td class='which" + results[i].program + "'>" + code + "</td></tr>");
+            code = '';
+            
           }
           $('.select2').select2()
         });
       });
+    }
+    
+    function editCourseApply(batch) {
+      var programList=[], maxList=[], period;
+      
+      $("#loadMe").modal({
+        backdrop: "static", //remove ability to close modal with click
+        keyboard: false, //remove option to close with keyboard
+        show: true //Display loader!
+      });
+      setTimeout(function() {
+        editCourseNavigate(); 
+        $("#loadMe").modal("hide");
+      },2000);
+      period = $('.batch' + batch + ' .period').val();
+      programList = $('.batch' + batch + ' .programlist').val();
+      for(i=0; i<programList.length; i++) {
+         maxList[programList[i]] = [];
+        for(j=0; j<group.length; j++) {
+          try{
+            console.log('.batch' + batch + ' .which' + programList[i] + ' .group' + j);
+            maxList[programList[i]][j] = $('.batch' + batch + ' .which' + programList[i] + ' .group' + j).val();
+          } catch (e) {
+
+            console.log(e);
+          }
+        }
+        
+      }
+      console.table(maxList);
+      console.log(maxList);
+      $.ajax({
+        url: '/editcourseapply',
+        type : "POST",
+        data : {
+          project: 'ggumdami',
+          course: 1,
+          batch: batch,
+          period: period, 
+          programs: JSON.stringify(programList),
+          maxes: JSON.stringify(maxList),
+          group: JSON.stringify(group)
+        }
+      });
+      
+      
+
+      
     }
     
     //Date range as a button
@@ -311,8 +492,10 @@ content-wrapper
           </a>
           <ul class="treeview-menu">
             <li><a href="#"><i class="fa fa-plus"></i> 새 프로젝트</a></li>
+            
+            <%=for(i=0; i<project.length; i++) {%>
             <li class="treeview">
-              <a href="#"><i class="fa fa-th"></i> 자유학기제 수강신청
+              <a href="#"><i class="fa fa-th"></i> <%=project[i].name%>
                 <span class="pull-right-container">
                   <i class="fa fa-angle-left pull-right"></i>
                 </span>
@@ -334,6 +517,8 @@ content-wrapper
                 </li>
               </ul>
             </li>
+            <%}%>
+        
           </ul>
         </li>
         <li class="treeview">
@@ -394,6 +579,19 @@ content-wrapper
 <!-- ./wrapper -->
 
 <!-- REQUIRED JS SCRIPTS -->
+<!-- Modal -->
+<div class="modal fade" id="loadMe" tabindex="-1" role="dialog" aria-labelledby="loadMeLabel">
+  <div class="modal-dialog modal-sm" role="document">
+    <div class="modal-content">
+      <div class="modal-body text-center">
+        <div class="loader"></div>
+        <div clas="loader-txt">
+          <p>서버와 통신중... <br><br><small>이 화면이 5초이상 지속되면 사이트를 리프레시해주세요.</small></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- jQuery 3 -->
 <script src="../bower_components/jquery/dist/jquery.min.js"></script>

@@ -17,14 +17,12 @@ const isEmpty = function(value){
         return true
     } else return false
 };
+
 /* GET home page. */
-let data_groups, data_applications, date_info;
-let data_programs=[], data_sessions=[], data_settings=[], data_teachers=[], data_preferences=[], data_sessinfo=[], data_sessions_indexed, data_period=[];
-for(i=0; i<10; i++) {
-	
-  data_period[i] = [];
-}
 router.get('/', function(req, res, next) {
+  let data_programs=[], data_sessions=[], data_settings=[], data_teachers=[], data_preferences=[], data_sessinfo=[], data_sessions_indexed, data_period=[], data_info=[], data_groups=[], data_applications=[];
+  for(i=0; i<20; i++)  data_period[i] = [];
+  console.log('value in index.js' + req.session.project);
   console.log(req.session.stuid);
   if(isEmpty(req.session.stuid)) {
     res.statusCode = 302;
@@ -32,7 +30,7 @@ router.get('/', function(req, res, next) {
     res.end();
     return;
   } else {
-  connection.query('SELECT * FROM applications WHERE id=' + req.session.stuid , function (error, results, fields) {
+  connection.query('SELECT * FROM ' + req.session.project + '_applications WHERE id=' + req.session.stuid , function (error, results, fields) {
     if (error) {
         console.log(error);
     }
@@ -51,7 +49,7 @@ router.get('/', function(req, res, next) {
     data_info = results[0];
 
   });
-  connection.query('SELECT * FROM groups', function (error, results, fields) {
+  connection.query('SELECT * FROM ' + req.session.project + '_groups', function (error, results, fields) {
     if (error) {
         console.log(error);
     }
@@ -59,7 +57,7 @@ router.get('/', function(req, res, next) {
     data_groups = results;
 
   });
-  connection.query('SELECT * FROM programs ORDER BY `group` ASC', function (error, results, fields) {
+  connection.query('SELECT * FROM ' + req.session.project + '_programs ORDER BY `group` ASC', function (error, results, fields) {
     if (error) {
       
         console.log(error);
@@ -71,7 +69,7 @@ router.get('/', function(req, res, next) {
 
 
   });
-  connection.query('SELECT * FROM sessions', function (error, results, fields) {
+  connection.query('SELECT * FROM ' + req.session.project + '_sessions', function (error, results, fields) {
     if (error) {
         console.log(error);
     }
@@ -90,7 +88,7 @@ router.get('/', function(req, res, next) {
 
 
   });
-  connection.query('SELECT * FROM session_info', function (error, results, fields) {
+  connection.query('SELECT * FROM ' + req.session.project + '_session_info', function (error, results, fields) {
     if (error) {
         console.log(error);
     }
@@ -99,20 +97,16 @@ router.get('/', function(req, res, next) {
     data_sessinfo = results;
 
   });
-    connection.query('SELECT * FROM period ORDER BY session', function (error, results, fields) {
-      if (error) {
-          console.log(error);
-      }
-      console.log(results);
-      
-      for(var i=0; i<results.length; i++) {
-        if(i>0) {
-          if(results[i].session != results[i-1].session) data_period[results[i].session] = [];
-        }
-        
-        data_period[results[i].session][results[i].batch] = results[i].value;
-      }
-      console.log(data_period)
+  connection.query('SELECT * FROM ' + req.session.project + '_period ORDER BY session', function (error, results, fields) {
+    if (error) {
+        console.log(error);
+    }
+    console.log(results);
+
+    for(var i=0; i<results.length; i++) {
+      data_period[results[i].session][results[i].batch] = results[i].value;
+    }
+    console.log(data_period)
   });
   connection.query('SELECT * FROM teachers', function (error, results, fields) {
     if (error) {

@@ -5,11 +5,11 @@ var moment = require('moment');
 const session = require('express-session');
 var moment_timezone = require('moment-timezone');
 
-var connectionRoot = mysql.createConnection({
+var connection = mysql.createConnection({
     host     : 'speakeasy.lucomstudio.com',
     user     : 'drecat',
     password : 'Hello00!',
-    database : 'gdmroot'
+    database : 'ggumdami'
 });
 moment.tz.setDefault("Asia/Seoul");
 
@@ -20,7 +20,14 @@ const isEmpty = function(value){
 };
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('starter');
+   var data_projects=[];
+  connection.query('SELECT * FROM projects', function (error, results, fields) {
+    if (error) {
+        console.log(error);
+    }
+    data_projects = results;
+  });
+  res.render('starter', {project: data_projects});
 
 });
 router.post('/home', function(req, res, next) {
@@ -28,30 +35,17 @@ router.post('/home', function(req, res, next) {
 });
 router.get('/edit_programs', function(req, res, next) {
   var data_programs=[], data_groups=[], data_teachers=[], data_period=[];
-  // project, course, program
-  var connection = mysql.createConnection({
-    host     : 'speakeasy.lucomstudio.com',
-    user     : 'drecat',
-    password : 'Hello00!',
-    database : req.query.project
-  });
+  for(i=0; i<10; i++)  data_period[i] = [];
+
   console.log(req.query.project);
   connection.connect();
-  connection.query('SELECT * FROM programs WHERE lecture=' + req.query.course , function (error, results, fields) {
+  connection.query('SELECT * FROM ' + req.query.project + '_programs WHERE lecture=' + req.query.course , function (error, results, fields) {
     if (error) {
         console.log(error);
     }
     data_programs = results;
   });
-  connection.query('SELECT * FROM groups', function (error, results, fields) {
-    if (error) {
-        console.log(error);
-    }
-    for(var i=0; i<results.length; i++) {
-      data_groups[results[i].id] = results[i];
-    }
-  });
-  connection.query('SELECT * FROM period', function (error, results, fields) {
+  connection.query('SELECT * FROM ' + req.session.project + '_period WHERE period=' + req.query.course , function (error, results, fields) {
     if (error) {
         console.log(error);
     }
@@ -67,21 +61,23 @@ router.get('/edit_programs', function(req, res, next) {
       data_teachers[results[i].id] = results[i];
     }
     console.log(data_programs);
-    res.render('modules/edit_programs', {program:data_programs, teacher:data_teachers, group: data_groups, period: data_period});
+    
 
+  });
+  connection.query('SELECT * FROM ' + req.query.project + '_groups WHERE lecture=' + req.query.course , function (error, results, fields) {
+    if (error) {
+        console.log(error);
+    }
+    res.render('modules/edit_programs', {program:data_programs, teacher:data_teachers, period: data_period, group: results});
   });
   connection.end();
   
 });
 router.get('/edit_course', function(req, res, next) {
-  var data_course=[];
+  var data_course=[], data_period=[];
+  for(i=0; i<10; i++)  data_period[i] = [];
   // project, course, program
-  var connection = mysql.createConnection({
-    host     : 'speakeasy.lucomstudio.com',
-    user     : 'drecat',
-    password : 'Hello00!',
-    database : req.query.project
-  });
+  
   console.log(req.query.project);
   connection.connect();
   connection.query('SELECT * FROM session_info WHERE id=' + req.query.course, function (error, results, fields) {
@@ -90,12 +86,27 @@ router.get('/edit_course', function(req, res, next) {
     }
     data_course = results;
   });
-  connection.query('SELECT * FROM programs WHERE lecture=' + req.query.course, function (error, results, fields) {
+  connection.query('SELECT * FROM period ORDER BY session', function (error, results, fields) {
     if (error) {
         console.log(error);
     }
     console.log(results);
-    res.render('modules/edit_course', {course: data_course, program: results});
+
+    for(var i=0; i<results.length; i++) {
+      if(i>0) {
+        if(results[i].session != results[i-1].session) data_period[results[i].session] = [];
+      }
+      data_period[results[i].session][results[i].batch] = results[i].value;
+    }
+    console.log(data_period)
+  });
+  connection.query('SELECT * FROM programs WHERE lecture=' + req.query.course, function (error, results, fields) {
+    if (error) {
+     
+      console.log(error);
+    }
+    console.log(results);
+    res.render('modules/edit_course', {course: data_course, program: results, period:data_period});
 
   });
   
