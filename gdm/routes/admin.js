@@ -9,7 +9,8 @@ var connection = mysql.createConnection({
     host     : 'speakeasy.lucomstudio.com',
     user     : 'drecat',
     password : 'Hello00!',
-    database : 'ggumdami'
+    database : 'ggumdami',
+    multipleStatements: true
 });
 moment.tz.setDefault("Asia/Seoul");
 
@@ -20,14 +21,24 @@ const isEmpty = function(value){
 };
 /* GET home page. */
 router.get('/', function(req, res, next) {
-   var data_projects=[];
+   var data_projects, query='', data_session_info;
   connection.query('SELECT * FROM projects', function (error, results, fields) {
     if (error) {
         console.log(error);
     }
     data_projects = results;
+    for(var i=0; i<results.length; i++) query += 'SELECT id, name FROM ' + results[i].class + '_session_info;';
+    connection.query(query, function (error, results, fields) {
+      if (error) {
+          console.log(error);
+      }
+      data_session_info = results;
+      console.table(results);
+      res.render('starter', {project: data_projects, session_info: data_session_info});
+    });
   });
-  res.render('starter', {project: data_projects});
+  
+  
 
 });
 router.post('/home', function(req, res, next) {
@@ -35,10 +46,10 @@ router.post('/home', function(req, res, next) {
 });
 router.get('/edit_programs', function(req, res, next) {
   var data_programs=[], data_groups=[], data_teachers=[], data_period=[];
-  for(i=0; i<10; i++)  data_period[i] = [];
+  for(var i=0; i<10; i++)  data_period[i] = [];
 
   console.log(req.query.project);
-  connection.connect();
+
   connection.query('SELECT * FROM ' + req.query.project + '_programs WHERE lecture=' + req.query.course , function (error, results, fields) {
     if (error) {
         console.log(error);
@@ -70,8 +81,7 @@ router.get('/edit_programs', function(req, res, next) {
     }
     res.render('modules/edit_programs', {program:data_programs, teacher:data_teachers, period: data_period, group: results});
   });
-  connection.end();
-  
+
 });
 router.get('/edit_course', function(req, res, next) {
   var data_course=[], data_period=[];
@@ -79,14 +89,14 @@ router.get('/edit_course', function(req, res, next) {
   // project, course, program
   
   console.log(req.query.project);
-  connection.connect();
-  connection.query('SELECT * FROM session_info WHERE id=' + req.query.course, function (error, results, fields) {
+
+  connection.query('SELECT * FROM ' + req.query.project + '_session_info WHERE id=' + req.query.course, function (error, results, fields) {
     if (error) {
         console.log(error);
     }
     data_course = results;
   });
-  connection.query('SELECT * FROM period ORDER BY session', function (error, results, fields) {
+  connection.query('SELECT * FROM ' + req.query.project + '_period ORDER BY session', function (error, results, fields) {
     if (error) {
         console.log(error);
     }
@@ -100,7 +110,7 @@ router.get('/edit_course', function(req, res, next) {
     }
     console.log(data_period)
   });
-  connection.query('SELECT * FROM programs WHERE lecture=' + req.query.course, function (error, results, fields) {
+  connection.query('SELECT * FROM ' + req.query.project + '_programs WHERE lecture=' + req.query.course, function (error, results, fields) {
     if (error) {
      
       console.log(error);
@@ -109,8 +119,7 @@ router.get('/edit_course', function(req, res, next) {
     res.render('modules/edit_course', {course: data_course, program: results, period:data_period});
 
   });
-  
-  connection.end();
+
 
 });
 module.exports = router;
