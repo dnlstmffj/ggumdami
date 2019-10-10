@@ -68,7 +68,7 @@
 						<%=title%>
 					</span>
             <select id="select-project" class="input100">
-              <%for(i=0; i<project.length; i++) {%>
+              <%for(i=0; i<project.length-1; i++) {%>
                 <option value="<%=project[i].class%>"> <%=project[i].name%></option>
               <%}%>
             </select>

@@ -1,0 +1,37 @@
+
+    <section class="content-header">
+      <h1>
+        새 프로젝트
+        <small>새로운 프로젝트(방과후 학교, 자유학기제 신청 등)를 생성합니다.</small>
+      </h1>
+      <ol class="breadcrumb">
+        <li class="active"><a href="#"><i class="fa fa-dashboard"></i> 새 프로젝트</a></li>
+      </ol>
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="box box-warning">
+        <div class="box-header with-border">
+          <h3 class="box-title">기본 정보</h3>
+        </div>
+        <!-- /.box-header -->
+        <div class="box-body">
+          <form role="form">
+            <!-- text input -->
+            <div class="form-group">
+              <label>프로젝트명</label>
+              <input type="text" class="form-control" id="createProjectName" placeholder="1학기 방과후 학교">
+              <br>
+              <label>프로젝트 아이디</label>
+              <input type="text" class="form-control" id="createProjectClass" placeholder="afterschool">
+            </div>
+          </form>
+        </div>
+        <div class="box-footer">
+            <button type="submit" class="btn btn-primary" onClick="createProject()">생성</button>
+          </div>
+        <!-- /.box-body -->
+      </div>
+      <!-- /.box -->
+    </section>

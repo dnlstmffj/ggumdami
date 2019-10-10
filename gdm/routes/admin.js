@@ -33,8 +33,8 @@ router.get('/', function(req, res, next) {
           console.log(error);
       }
       data_session_info = results;
-      console.table(results);
-      res.render('starter', {project: data_projects, session_info: data_session_info});
+      console.log(results[0]);
+      res.render('starter', {project: data_projects, session_info: results});
     });
   });
   
@@ -73,7 +73,9 @@ router.get('/edit_programs', function(req, res, next) {
     }
     for(var i=0; i<results.length; i++) {
       data_indexgroup[results[i].id] = results[i];
+      
     }
+    console.log(data_indexgroup);
     res.render('modules/edit_programs', {program:data_programs, teacher:data_teachers,  group: results, indexGroup:data_indexgroup});
   });
 
