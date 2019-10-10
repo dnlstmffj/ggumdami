@@ -125,7 +125,7 @@
     }
   </style>
   <script>
-    var programs=[], data_period=[], limits=[], group=[];
+    var programs=[], data_period=[], limits=[], group=[], curProject, curCourse;
     //isEmpty: 변수 값 존재 여부 확인
     var isEmpty = function(value){ 
       if( value == "" || value == null || value == undefined || ( value != null && typeof value == "object" && !Object.keys(value).length ) ) return true;
@@ -151,11 +151,72 @@
       });
     }
     
+    function addGroup() {
+      var name = document.getElementById('addGroupName').value;
+      $.ajax({
+        url: '/create_prog_group',
+        type : "POST",
+        data : {
+          project: curProject,
+          course: curCourse,
+          name:name
+        },
+      }).done(function(results) {
+        $('#addGroupModal').modal('hide');
+        editProgramNavigate(curProject, curCourse);
+      });
+    }
+    function showUpdateGroup(id, name) {
+      $('#updateGroupModal').modal()
+      document.getElementById('updateGroupName').value = name;
+      document.getElementById('updateGroupBtn').setAttribute( 'onClick', 'updateGroup(' + id + ')' );
+    }
+    
+    function updateGroup(id) {
+      var name = document.getElementById('updateGroupName').value;
+      $.ajax({
+        url: '/update_prog_group',
+        type : "POST",
+        data : {
+          id: id,
+          project: curProject,
+          name:name
+        },
+      }).done(function(results) {
+        $('#updateGroupModal').modal('hide');
+        editProgramNavigate(curProject, curCourse);
+        
+      });
+    }
+    
+    function deleteGroup(id) {
+      var retVal = confirm("정말로 프로그램 그룹을 삭제할까요? ");
+      if( retVal == false ) return;
+      $.ajax({
+        url: '/delete_prog_group',
+        type : "POST",
+        data : {
+          id: id,
+          project: curProject,
+        },
+      }).done(function(results) {
+        if(results == '300') {
+          alert("이 프로그램 그룹에 속한 프로그램이 하나 이상 존재합니다. 삭제하지 못했습니다.")
+        }
+        editProgramNavigate(curProject, curCourse);
+        
+      });
+    }
+    
     window.onload = function () {
+      pageNavigate('/admin/home');
+    }
+    
+    function editProgramNavigate(project, course) {
       $.ajax({
         url: "/get_programinfo",
         data : {
-          project: 'ggumdami',
+          project: project,
           isAdmin: 1
         },
         type: "POST"
@@ -164,32 +225,29 @@
           programs[results[i].id] = results[i];
         }
       });
-      
-      pageNavigate('/admin/home');
-    }
-    
-    function editProgramNavigate(page) {
       $.ajax({
         url: '/admin/edit_programs',
         type : "GET",
         dataType : "html",
         data : {
-          project: 'ggumdami',
-          course: 1
+          project: project,
+          course: course
         },
         cache : false
         
       }).done(function(results) {
         $('.content-wrapper').children().remove();
         $('.content-wrapper').html(results);
+        curProject = project;
+        curCourse = course;
       });
     }
     
-    function editCourseNavigate() {
+    function editCourseNavigate(project, course) {
       $.ajax({
         url: "/get_groups",
         data : {
-          project: 'ggumdami',
+          project:project
         },
         type: "POST"
       }).done(function(results) {
@@ -199,11 +257,11 @@
       $.ajax({
         url: "/get_limits",
         data : {
-          project: 'ggumdami'
+          project: project
         },
         type: "POST",
         data : {
-          project: 'ggumdami'
+          project: project
         }
       }).done(function(results) {
         console.log(results);
@@ -219,8 +277,8 @@
         type : "GET",
         dataType : "html",
         data : {
-          project: 'ggumdami',
-          course: 1
+          project: project,
+          course: course
         },
         cache : false
       }).done(function(results) {
@@ -231,8 +289,8 @@
           type : "POST",
           dataType : "json",
           data : {
-            project: 'ggumdami',
-            course: 1
+            project: project,
+            course: course
           },
           cache : false
 
@@ -260,17 +318,31 @@
         });
       });
     }
+
+    var modalConfirm = function(callback){
+      $("#modal-btn-si").on("click", function(){
+        callback(true);
+        $("#confirm-modal").modal('hide');
+      });
+
+      $("#modal-btn-no").on("click", function(){
+        callback(false);
+        $("#confirm-modal").modal('hide');
+      });
+    };
     
-    function editCourseApply(batch) {
+    function editCourseApply(project, course, batch) {
       var programList=[], maxList=[], period;
-      
+      var retVal = confirm("세션 정보를 수정하면 시스템 충돌 방지를 위해 모든 수강신청 데이터가 초기화됩니다. 수정하시겠습니까?");
+      if( retVal != true ) return;
+
       $("#loadMe").modal({
         backdrop: "static", //remove ability to close modal with click
         keyboard: false, //remove option to close with keyboard
         show: true //Display loader!
       });
       setTimeout(function() {
-        editCourseNavigate(); 
+        editCourseNavigate(project, course); 
         $("#loadMe").modal("hide");
       },2000);
       period = $('.batch' + batch + ' .period').val();
@@ -294,19 +366,15 @@
         url: '/editcourseapply',
         type : "POST",
         data : {
-          project: 'ggumdami',
-          course: 1,
+          project: project,
+          course: course,
           batch: batch,
           period: period, 
           programs: JSON.stringify(programList),
           maxes: JSON.stringify(maxList),
           group: JSON.stringify(group)
         }
-      });
-      
-      
-
-      
+      });  
     }
     
     //Date range as a button
@@ -527,7 +595,7 @@ content-wrapper
                     </span>
                   </a>
                   <ul class="treeview-menu">
-                    <li><a href="#"><i class="fa fa-align-justify"></i> 세션</a></li>
+                    <li><a onClick="editCourseNavigate('<%=project[i].class%>', <%=session_info[i][j].id%>)"><i class="fa fa-align-justify"></i> 세션</a></li>
                     <li><a href="#"><i class="fa fa-bullseye"></i> 프로그램</a></li>
                   </ul>
                   <%}%>
@@ -612,16 +680,79 @@ content-wrapper
   </div>
 </div>
   
-<div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true" id="mi-modal">
-  <div class="modal-dialog modal-sm">
+
+<div class="modal fade" id="addGroupModal" tabindex="-1" role="dialog" aria-labelledby="editGroupModalLabel">
+  <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title" id="confirmModalLabel">Confirmar</h4>
+        <h4 class="modal-title" id="editGroupModalLabel">프로그램 그룹 생성</h4>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>그룹명</label>
+          <input type="text" class="form-control" id="addGroupName" placeholder="그룹명을 입력하세요">
+        </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-default" id="modal-btn-si">예/button>
-        <button type="button" class="btn btn-primary" id="modal-btn-no">아니오tton>
+        <button type="button" class="btn btn-default" data-dismiss="modal">닫기</button>
+        <button type="button" class="btn btn-primary" onClick="addGroup()">생성</button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+<div class="modal fade" id="updateGroupModal" tabindex="-1" role="dialog" aria-labelledby="updateGroupModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="updateGroupModalLabel">프로그램 그룹 수정</h4>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>그룹명</label>
+          <input type="text" class="form-control" id="updateGroupName" placeholder="그룹명을 입력하세요">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">닫기</button>
+        <button type="button" class="btn btn-primary" id="updateGroupBtn">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+<div class="modal fade" id="createProgramModal" tabindex="-1" role="dialog" aria-labelledby="createProgramModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="createProgramModalLabel">프로그램 </h4>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>프로그램명</label>
+          <input type="text" class="form-control" id="createProgramName" placeholder="프로그램명을 입력하세요">
+        </div>
+        <div class="form-group">
+          <label>지도교사</label>
+          <select type="text" class="form-control" id="createProgramTeacher" placeholder="지도교사을 입력하세요">
+            
+          </select>
+        </div>
+        <div class="form-group">
+          <label>수업장소</label>
+          <input type="text" class="form-control" id="createProgramPlace" placeholder="그룹명을 입력하세요">
+        </div>
+        <div class="form-group">
+          <label>프로그램 그룹</label>
+          <input type="text" class="form-control" id="createProgramGroup" placeholder="그룹명을 입력하세요">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">닫기</button>
+        <button type="button" class="btn btn-primary" id="updateGroupBtn">저장</button>
       </div>
     </div>
   </div>

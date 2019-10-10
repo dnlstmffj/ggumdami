@@ -166,6 +166,52 @@ app.post('/get_groups', function(req, res){
   });
 });
 
+app.post('/create_prog_group', function(req, res){
+  connection.query('INSERT INTO ' + req.body.project + '_groups (name, lecture) VALUES (\'' + req.body.name + '\', ' + req.body.course + ')', function (error, results, fields) {
+    if (error) {
+      console_log(error);
+      res.end("500");
+    } else { 
+      res.end("200");
+    }
+  });
+});
+
+app.post('/update_prog_group', function(req, res){
+  connection.query('UPDATE ' + req.body.project + '_groups SET name=\'' + req.body.name + '\' WHERE id=' + req.body.id, function (error, results, fields) {
+    if (error) {
+      console_log(error);
+      res.end("500");
+    } else { 
+      res.end("200");
+    }
+  });
+});
+
+app.post('/delete_prog_group', function(req, res){
+  //''
+  connection.query('SELECT EXISTS(SELECT * FROM ' + req.body.project + '_programs WHERE `group`=' + req.body.id + ')as value', function (error, results, fields) {
+    if (error) {
+      console_log(error);
+      res.end("500");
+    } else { 
+      if(results[0].value == 1) {
+        res.end("300");
+      } else {
+        connection.query('DELETE FROM ' + req.body.project + '_groups WHERE id=' + req.body.id, function (error, results, fields) {
+          if (error) {
+            console_log(error);
+            res.end("500");
+          } else { 
+
+            res.end("200");
+          }
+        });
+      }
+    }
+  });
+  
+});
 
 app.post('/get_programgroups', function(req, res){
   connection.query('SELECT * FROM ' + req.session.project + '_groups', function (error, results, fields) {
@@ -174,6 +220,149 @@ app.post('/get_programgroups', function(req, res){
       res.end("500");
     } else { 
       res.json(results);
+    }
+  });
+});
+
+app.post('/create_program', function(req, res){
+  connection.query('INSERT INTO ' + req.body.project + '_programs (name, teacher, place, lecture, group) VALUES (' + req.body.name + ', ' + req.body.teacher + ', ' + req.body.place + ', ' + req.body.lecture + ', ' + req.body.group + ')', function (error, results, fields) {
+    if (error) {
+      console_log(error);
+      res.end("500");
+    } else { 
+      res.end("200");
+    }
+  });
+});
+
+app.post('/update_program', function(req, res){
+  connection.query('UPDATE ' + req.body.project + '_programs SET name=' + req.body.name + ', teacher=' + req.body.teacher + ', place=' + req.body.place + 'group=' + req.body.group + ' WHERE id=' + req.body.id, function (error, results, fields) {
+    if (error) {
+      console_log(error);
+      res.end("500");
+    } else { 
+      res.end("200");
+    }
+  });
+});
+
+app.post('/delete_program', function(req, res){
+  connection.query('DELETE s.*, a.* FROM ' + req.body.project + '_sessions s LEFT JOIN ' + req.body.project + 'applications a ON s.id = a.which WHERE s.program=' + req.body.id + '; DELETE FROM ' + req.body.project + '_programs WHERE id=' + req.body.id, function (error, results, fields) {
+    if (error) {
+      console_log(error);
+      res.end("500");
+    } else { 
+      res.end("200");
+    }
+  });
+});
+
+app.post('/create_student', function(req, res){
+  connection.query('INSERT INTO students (id, name, phone, birthdate, group) VALUES (' + req.body.id + ', ' + req.body.name + ', ' + req.body.phone + ', ' + req.body.birthdate + ', ' + req.body.group + ')', function (error, results, fields) {
+    if (error) {
+      console_log(error);
+      res.end("500");
+    } else { 
+      res.end("200");
+    }
+  });
+});
+
+app.post('/update_student', function(req, res){
+  connection.query('UPDATE students SET name=' + req.body.name + ', phone=' + req.body.phone + ', birthdate=' + req.body.birthdate + 'group=' + req.body.group + ' WHERE id=' + req.body.id, function (error, results, fields) {
+    if (error) {
+      console_log(error);
+      res.end("500");
+    } else { 
+      res.end("200");
+    }
+  });
+});
+
+app.post('/delete_student', function(req, res){
+  connection.query('DELETE FROM students WHERE id=' + req.body.id, function (error, results, fields) {
+    if (error) {
+      console_log(error);
+      res.end("500");
+    } else { 
+      res.end("200");
+    }
+  });
+});
+
+app.post('/create_group', function(req, res){
+  connection.query('INSERT INTO student_groups (name) VALUES (' + req.body.name + ')', function (error, results, fields) {
+    if (error) {
+      console_log(error);
+      res.end("500");
+    } else { 
+      res.end("200");
+    }
+  });
+});
+
+app.post('/update_group', function(req, res){
+  connection.query('UPDATE student_groups SET name=' + req.body.name + ' WHERE id=' + req.body.id, function (error, results, fields) {
+    if (error) {
+      console_log(error);
+      res.end("500");
+    } else { 
+      res.end("200");
+    }
+  });
+});
+
+app.post('/delete_group', function(req, res){
+  connection.query('DELETE FROM groups WHERE id=' + req.body.id, function (error, results, fields) {
+    if (error) {
+      console_log(error);
+      res.end("500");
+    } else { 
+      res.end("200");
+    }
+  });
+});
+
+app.post('/create_teacher', function(req, res){
+  connection.query('INSERT INTO teachers (name) VALUES (' + req.body.name + ')', function (error, results, fields) {
+    if (error) {
+      console_log(error);
+      res.end("500");
+    } else { 
+      res.end("200");
+    }
+  });
+});
+
+app.post('/update_teacher', function(req, res){
+  connection.query('UPDATE teachers SET name=' + req.body.name + ' WHERE id=' + req.body.id, function (error, results, fields) {
+    if (error) {
+      console_log(error);
+      res.end("500");
+    } else { 
+      res.end("200");
+    }
+  });
+});
+
+app.post('/delete_teacher', function(req, res){
+  connection.query('DELETE FROM teachers WHERE id=' + req.body.id, function (error, results, fields) {
+    if (error) {
+      console_log(error);
+      res.end("500");
+    } else { 
+      res.end("200");
+    }
+  });
+});
+
+app.post('/update_setting', function(req, res){
+  connection.query('UPDATE settings SET value=' + req.body.value + ' WHERE id=' + req.body.id, function (error, results, fields) {
+    if (error) {
+      console_log(error);
+      res.end("500");
+    } else { 
+      res.end("200");
     }
   });
 });
@@ -188,6 +377,7 @@ app.post('/get_sessions', function(req, res){
     }
   });
 });
+
 app.post('/get_period', function(req, res){
   connection.query('SELECT * FROM ' + req.session.project + '_period', function (error, results, fields) {
     if (error) {
@@ -199,7 +389,7 @@ app.post('/get_period', function(req, res){
   });
 });
 
-app.post('/add_project', function(req, res){
+app.post('/create_project', function(req, res){
   var query = 'CREATE TABLE `' + req.body.class +'_applications` LIKE `system_applications`;';
   query += 'CREATE TABLE `' + req.body.class +'_sessions` LIKE `system_sessions`;';
   query += 'CREATE TABLE `' + req.body.class +'_session_info` LIKE `system_session_info`;';
@@ -209,6 +399,28 @@ app.post('/add_project', function(req, res){
   query += 'CREATE TABLE `' + req.body.class +'_group` LIKE `system_group`;';
   query += 'INSERT INTO projects (name, class) VALUES (' + req.body.name + ','  + req.body.class +');';
   connection.query(query, function (error, results, fields) {
+    if (error) {
+      console_log(error);
+      res.end("500");
+    } else { 
+      res.end("200");
+    }
+  });
+});
+
+app.post('/update_project', function(req, res){
+  connection.query('UPDATE projects SET name=' + req.body.name + ' WHERE id=' + req.body.id, function (error, results, fields) {
+    if (error) {
+      console_log(error);
+      res.end("500");
+    } else { 
+      res.end("200");
+    }
+  });
+});
+
+app.post('/delete_project', function(req, res){
+  connection.query('DELETE FROM projects WHERE id=' + req.body.id, function (error, results, fields) {
     if (error) {
       console_log(error);
       res.end("500");
@@ -287,7 +499,7 @@ app.post('/editcourseapply', function(req, res){
       console_log(error);
       res.end("500");
     } else {
-      connection.query('DELETE s.*, l.* FROM ' + req.body.project + '_sessions s INNER JOIN ' + req.body.project + '_limits l ON s.id = l.which WHERE s.session=' + req.body.course + ' AND batch=' + req.body.batch, function (error, results, fields) {
+      connection.query('DELETE s.*, l.* FROM ' + req.body.project + '_sessions s LEFT JOIN ' + req.body.project + '_limits l ON s.id = l.which WHERE s.session=' + req.body.course + ' AND batch=' + req.body.batch, function (error, results, fields) {
         if (error) {
           console_log(error);
           res.end("500");

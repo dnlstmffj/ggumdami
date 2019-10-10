@@ -1,11 +1,11 @@
 
     <section class="content-header">
       <h1>
-        주제선택프로그램
+        <%=course[0].name%>
         <small>수강과정 정보</small>
       </h1>
       <ol class="breadcrumb">
-        <li class="active"><a href="#"><i class="fa fa-dashboard"></i> 새 수강과정</a></li>
+        <li class="active"><a href="#"><i class="fa fa-dashboard"></i> <%=course[0].name%></a></li>
 
 
       </ol>
@@ -25,7 +25,7 @@
             <!-- text input -->
             <div class="form-group">
               <label>수강과정명</label>
-              <input type="text" class="form-control" placeholder="예술체육프로그램" value="<%=course[0].name%>">
+              <input type="text" class="form-control" placeholder="수강과정명" value="<%=course[0].name%>">
               <br>
               <label>수강과정 아이디</label>
               <input type="text" class="form-control" placeholder="artsport" value="<%=course[0].class%>">
@@ -59,7 +59,7 @@
                   <div class="input-group-addon">
                     <i class="fa fa-calendar"></i>
                   </div>
-                  <input type="text" class="form-control pull-right period" value="<%=period[1][i+1]%>">
+                  <input type="text" class="form-control pull-right period" value="<%=period[i+1]%>">
                 </div>
                 <!-- /.input group -->
               </div>
@@ -85,7 +85,7 @@
            </table>
           </div>
           <div class="box-footer">
-            <button type="submit" class="btn btn-primary" onClick="editCourseApply(<%=i+1%>)">저장</button>
+            <button type="submit" class="btn btn-primary" onClick="editCourseApply('<%=project%>', <%=info%>, <%=i+1%>)">저장</button>
           </div>
           <!-- /.box-body -->
         </div>
