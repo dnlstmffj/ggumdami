@@ -126,6 +126,11 @@
   </style>
   <script>
     var programs=[], data_period=[], limits=[], group=[];
+    //isEmpty: 변수 값 존재 여부 확인
+    var isEmpty = function(value){ 
+      if( value == "" || value == null || value == undefined || ( value != null && typeof value == "object" && !Object.keys(value).length ) ) return true;
+      else return false;
+    };
     function pageNavigate(page) {
       $.ajax({
         url: page,
@@ -202,7 +207,7 @@
         }
       }).done(function(results) {
         console.log(results);
-        limits[results[0].which] = [];
+        if(!isEmpty(results[0])) limits[results[0].which] = [];
         for(var i=0; i<results.length; i++) {
           if(i> 0) if(results[i-1].which != results[i].which) limits[results[i].which] = [];
           limits[results[i].which][results[i].group] = results[i];
@@ -606,7 +611,21 @@ content-wrapper
     </div>
   </div>
 </div>
-
+  
+<div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true" id="mi-modal">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="confirmModalLabel">Confirmar</h4>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" id="modal-btn-si">예/button>
+        <button type="button" class="btn btn-primary" id="modal-btn-no">아니오tton>
+      </div>
+    </div>
+  </div>
+</div>
 <!-- jQuery 3 -->
 <script src="../bower_components/jquery/dist/jquery.min.js"></script>
 <!-- Bootstrap 3.3.7 -->

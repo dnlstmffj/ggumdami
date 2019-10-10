@@ -198,10 +198,12 @@
                 }
               }).done(function(results) {
                 console.log(results);
-                $('#list_programs').append("<ons-list-heder id='toolbar_apply' class='list-header'>" + prog_groups[results[0].group].name + "</ons-list-heder>");
+                
+                if(results.length > 0) $('#list_programs').append("<ons-list-heder class='list-header'>" + prog_groups[results[0].group].name + "</ons-list-heder>");
                 for(var i=0; i<results.length; i++) {     
                   if(i>0 && results[i].group != results[i-1].group) $('#list_programs').append("<ons-list-heder id='toolbar_apply' class='list-header'>" + prog_groups[results[i].group].name + "</ons-list-heder>");
                   content = "<ons-list-item onClick='apply(" + results[i].id + ', ' + page.data.session + ")' class='list-item' tappable><div class='center'> <span class='list-item__title'>" + programs[results[i].program].name + "</span><span class='list-item__subtitle'>"+ teachers[programs[results[i].program].teacher].name +"</span> </div> <div class='right'>" + results[i].cur + "/" + results[i].max +"</div> </ons-list-item>"; //중단점a
+                  
                   $('#list_programs').append(content);
                 }
                 page.querySelector('ons-toolbar .center').innerHTML = sessioninfo[page.data.session].name + " " + page.data.batch + "기";
@@ -325,7 +327,7 @@
             <ons-toolbar>
                 <div class="left"><ons-back-button>Back</ons-back-button></div>
 				
-                <div id="toolbar_apply" class="center">이부분을 자동으로 생성되게 해볼게요.</div>
+                <div id="toolbar_apply" class="center"></div>
             </ons-toolbar>
             <ons-list id="list_programs"/>
         </ons-page>

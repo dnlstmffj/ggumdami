@@ -287,7 +287,7 @@ app.post('/editcourseapply', function(req, res){
       console_log(error);
       res.end("500");
     } else {
-      connection.query('DELETE FROM ' + req.body.project + '_sessions WHERE session=' + req.body.course + ' AND batch=' + req.body.batch, function (error, results, fields) {
+      connection.query('DELETE s.*, l.* FROM ' + req.body.project + '_sessions s INNER JOIN ' + req.body.project + '_limits l ON s.id = l.which WHERE s.session=' + req.body.course + ' AND batch=' + req.body.batch, function (error, results, fields) {
         if (error) {
           console_log(error);
           res.end("500");
@@ -326,7 +326,14 @@ app.post('/editcourseapply', function(req, res){
                   console_log(error);
                   res.end("500");
                 } else {
-                  res.end("200");
+                  connection.query('DELETE FROM ' + req.body.project + '_applications', function (error, results, fields) {
+                    if (error) {
+                      console_log(error);
+                      res.end("500");
+                    } else {
+                      res.end("200");
+                    }
+                  });
                 }
               });
             });
@@ -395,7 +402,7 @@ app.post('/apply', function(req, res){
       res.end("500");
     } 
 
-    connection.query('SELECT IF((SELECT max FROM ' + req.session.project + '_limits WHERE which=' + req.body.which +' AND `group`= (SELECT `group` FROM students WHERE id=' + req.session.stuid + ')) < (SELECT COUNT(*) as cnt FROM ' + req.session.project + '_applications as a, students as s WHERE a.student = s.id AND s.group = (SELECT `group` FROM students WHERE id=' + req.session.stuid + ') AND a.which=301), 0, 1) as vaild', function (error, results, fields) {
+    connection.query('SELECT IF((SELECT max FROM ' + req.session.project + '_limits WHERE which=' + req.body.which +' AND `group`= (SELECT `group` FROM students WHERE id=' + req.session.stuid + ')) < (SELECT COUNT(*) FROM ' + req.session.project + '_applications a INNER JOIN students s ON a.student = s.id WHERE s.group=(SELECT `group` FROM students WHERE id=' + req.session.stuid + ') AND a.which=' + req.body.which +'), 0, 1) as vaild', function (error, results, fields) {
       if (error) {
         console_log(error);
         res.end("500");
