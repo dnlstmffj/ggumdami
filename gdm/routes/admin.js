@@ -21,8 +21,8 @@ const isEmpty = function(value){
 };
 /* GET home page. */
 router.get('/', function(req, res, next) {
-   var data_projects, query='', data_session_info, data_unindexteacher=[], data_teachers=[];
-  connection.query('SELECT * FROM projects', function (error, results, fields) {
+   var data_projects, query='', data_session_info, data_unindexteacher=[], data_teachers=[], data_group=[];
+  connection.query('SELECT * FROM projects ORDER BY id ASC', function (error, results, fields) {
     if (error) {
         console.log(error);
     }
@@ -37,13 +37,21 @@ router.get('/', function(req, res, next) {
       }
       data_unindexteacher = results;
     });
+    connection.query('SELECT * FROM student_groups', function (error, results, fields) {
+    if (error) {
+        console.log(error);
+    }
+    data_group = results;
+    
+
+  });
     connection.query(query, function (error, results, fields) {
       if (error) {
           console.log(error);
       }
       data_session_info = results;
       console.log(results[0]);
-      res.render('starter', {project: data_projects, session_info: results, unindexteacher: data_unindexteacher, teacher:data_teachers});
+      res.render('starter', {project: data_projects, session_info: results, unindexteacher: data_unindexteacher, teacher:data_teachers, group:data_group});
     });
   });
   
@@ -126,6 +134,32 @@ router.get('/edit_course', function(req, res, next) {
     }
     console.log(results);
     res.render('modules/edit_course', {course: data_course, program: results, period:data_period, project:req.query.project, info: req.query.course});
+
+  });
+});
+
+
+router.get('/edit_students', function(req, res, next) {
+  var data_students=[], data_studentsindexed=[], data_groupsindexed=[];
+  connection.query('SELECT * FROM students', function (error, results, fields) {
+    if (error) {
+        console.log(error);
+    }
+    for(var i=0; i<results.length; i++) {
+      data_studentsindexed[results[i].id] = results[i];
+    }
+    data_students = results;
+  });
+  connection.query('SELECT * FROM student_groups', function (error, results, fields) {
+    if (error) {
+     
+      console.log(error);
+    }
+    for(var i=0; i<results.length; i++) {
+      data_groupsindexed[results[i].id] = results[i];
+    }
+    console.log(results);
+    res.render('modules/edit_students', {student:data_students, studentindexed: data_studentsindexed, group: results, groupindexed: data_groupsindexed});
 
   });
 });

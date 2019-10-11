@@ -20,7 +20,7 @@ const isEmpty = function(value){
 /* GET home page. */
 router.get('/', function(req, res, next) {
   var data_projects = [];
-  connection.query('SELECT * FROM projects', function (error, results, fields) {
+  connection.query('SELECT * FROM projects ORDER BY id ASC', function (error, results, fields) {
     if (error) {
         console.log(error);
     }

@@ -296,7 +296,7 @@ app.post('/delete_program', function(req, res){
 });
 
 app.post('/create_student', function(req, res){
-  connection.query('INSERT INTO students (id, name, phone, birthdate, group) VALUES (' + req.body.id + ', ' + req.body.name + ', ' + req.body.phone + ', ' + req.body.birthdate + ', ' + req.body.group + ')', function (error, results, fields) {
+  connection.query('INSERT INTO students (id, name, phone, birthdate, `group`) VALUES (?, ?, ?, ?, ?)', [req.body.id, req.body.name, req.body.phone, req.body.birthdate, req.body.group], function (error, results, fields) {
     if (error) {
       console_log(error);
       res.end("500");
@@ -307,7 +307,7 @@ app.post('/create_student', function(req, res){
 });
 
 app.post('/update_student', function(req, res){
-  connection.query('UPDATE students SET name=' + req.body.name + ', phone=' + req.body.phone + ', birthdate=' + req.body.birthdate + 'group=' + req.body.group + ' WHERE id=' + req.body.id, function (error, results, fields) {
+  connection.query('UPDATE students SET name=?, phone=?, birthdate=?, `group`=? WHERE id=?', [req.body.name, req.body.phone, req.body.birthdate, req.body.group, req.body.id],function (error, results, fields) {
     if (error) {
       console_log(error);
       res.end("500");
@@ -318,18 +318,18 @@ app.post('/update_student', function(req, res){
 });
 
 app.post('/delete_student', function(req, res){
-  connection.query('DELETE FROM students WHERE id=' + req.body.id, function (error, results, fields) {
+  connection.query('DELETE FROM students WHERE id=?', [req.body.id],function (error, results, fields) {
     if (error) {
       console_log(error);
       res.end("500");
     } else { 
-      res.end("200");
+        res.end("200");
     }
   });
 });
 
 app.post('/create_group', function(req, res){
-  connection.query('INSERT INTO student_groups (name) VALUES (' + req.body.name + ')', function (error, results, fields) {
+  connection.query('INSERT INTO student_groups (name) VALUES (?)', [req.body.name],function (error, results, fields) {
     if (error) {
       console_log(error);
       res.end("500");
@@ -340,7 +340,19 @@ app.post('/create_group', function(req, res){
 });
 
 app.post('/update_group', function(req, res){
-  connection.query('UPDATE student_groups SET name=' + req.body.name + ' WHERE id=' + req.body.id, function (error, results, fields) {
+  connection.query('UPDATE student_groups SET name=? WHERE id=?', [req.body.name, req.body.id],function (error, results, fields) {
+    if (error) {
+      console_log(error);
+      res.end("500");
+    } else { 
+      res.end("200");
+    }
+  });
+});
+
+app.post('/update_restrict', function(req, res){
+  console.log([req.body.project+'_session_info', req.body.group, req.body.program]);
+  connection.query('UPDATE ?? SET grouprestrict=?, programrestrict=? WHERE id=?', [req.body.project+'_session_info', req.body.group, req.body.program, req.body.id],function (error, results, fields) {
     if (error) {
       console_log(error);
       res.end("500");
@@ -351,7 +363,7 @@ app.post('/update_group', function(req, res){
 });
 
 app.post('/delete_group', function(req, res){
-  connection.query('DELETE FROM groups WHERE id=' + req.body.id, function (error, results, fields) {
+  connection.query('DELETE FROM student_groups WHERE id=' + req.body.id, function (error, results, fields) {
     if (error) {
       console_log(error);
       res.end("500");
@@ -434,8 +446,8 @@ app.post('/create_project', function(req, res){
   query += 'CREATE TABLE `' + req.body.class +'_programs` LIKE `system_programs`;';
   query += 'CREATE TABLE `' + req.body.class +'_period` LIKE `system_period`;';
   query += 'CREATE TABLE `' + req.body.class +'_limits` LIKE `system_limits`;';
-  query += 'CREATE TABLE `' + req.body.class +'_group` LIKE `system_group`;';
-  query += 'INSERT INTO projects (name, class) VALUES (' + req.body.name + ','  + req.body.class +');';
+  query += 'CREATE TABLE `' + req.body.class +'_groups` LIKE `system_groups`;';
+  query += 'INSERT INTO projects (name, class) VALUES (\'' + req.body.name + '\',\''  + req.body.class +'\');';
   connection.query(query, function (error, results, fields) {
     if (error) {
       console_log(error);
@@ -646,32 +658,171 @@ app.post('/cancel', function(req, res){
 
 app.post('/apply', function(req, res){
   // INSERT INTO (student, which, session) VALUES (, , ) 
-  connection.query('INSERT INTO ' + req.session.project + '_applications (student, which, session) VALUES (' + req.session.stuid +', ' + req.body.which + ', ' + req.body.session + ')', function (error, results_insert, fields) {
+  connection.query('SELECT grouprestrict, programrestrict FROM ?? WHERE id=(SELECT session FROM ?? WHERE id=?)', [req.session.project+'_session_info', req.session.project+'_sessions', req.body.which],function (error, results_check, fields) {
     if (error) {
-      console_log(error);
+      console.log(error);
       res.end("500");
-    } 
-
-    connection.query('SELECT IF((SELECT max FROM ' + req.session.project + '_limits WHERE which=' + req.body.which +' AND `group`= (SELECT `group` FROM students WHERE id=' + req.session.stuid + ')) < (SELECT COUNT(*) FROM ' + req.session.project + '_applications a INNER JOIN students s ON a.student = s.id WHERE s.group=(SELECT `group` FROM students WHERE id=' + req.session.stuid + ') AND a.which=' + req.body.which +'), 0, 1) as vaild', function (error, results, fields) {
-      if (error) {
-        console_log(error);
-        res.end("500");
-      }
-      console.log('result' + results[0].vaild);
-      if(results[0].vaild == 0){
-        connection.query('DELETE FROM ' + req.session.project + '_applications WHERE id=' + results_insert.insertId, function (error, results, fields) {
+    } else { 
+      if(results_check[0].grouprestrict == 1) {
+        //SELECT aa.* FROM applications a INNER JOIN sessions s ON a.which = s.id INNER JOIN programs p ON s.program = p.id WHERE p.group= 1
+        connection.query('SELECT EXISTS(SELECT * FROM ?? a INNER JOIN ?? s ON a.which = s.id INNER JOIN ?? p ON s.program = p.id WHERE p.group= (SELECT p.group FROM ?? s INNER JOIN ?? p ON s.program = p.id WHERE s.id=?)) as vaild', [req.session.project+'_applications', req.session.project+'_sessions', req.session.project+'_programs', req.session.project+'_sessions', req.session.project+'_programs', req.body.which*1], function (error, results, fields) {
           if (error) {
-            console_log(error);
+            console.log(error);
             res.end("500");
           } else { 
-            res.end("300");
+            if(results[0].vaild == 1) {
+              res.end("101");
+            
+            } else {
+              console.log('first');
+              if(results_check[0].programrestrict == 1) {
+                connection.query('SELECT EXISTS(SELECT * FROM ?? a INNER JOIN ?? s ON a.which = s.id INNER JOIN ?? p ON s.program = p.id WHERE p.id=(SELECT p.id FROM ?? s INNER JOIN ?? p ON s.program = p.id WHERE s.id=?)) as vaild', [req.session.project+'_applications', req.session.project+'_sessions', req.session.project+'_programs', req.session.project+'_sessions', req.session.project+'_programs', req.body.which*1], function (error, results, fields) {
+                  if (error) {
+                    console.log(error);
+                    res.end("500");
+                  } else { 
+                    console.log('second');
+                    if(results[0].vaild == 1) {
+                      res.end("102");
+          
+                    } else {
+                      connection.query('INSERT INTO ' + req.session.project + '_applications (student, which, session) VALUES (' + req.session.stuid +', ' + req.body.which + ', ' + req.body.session + ')', function (error, results_insert, fields) {
+                        if (error) {
+                          console_log(error);
+                          res.end("500");
+                        } 
+
+                        connection.query('SELECT IF((SELECT max FROM ' + req.session.project + '_limits WHERE which=' + req.body.which +' AND `group`= (SELECT `group` FROM students WHERE id=' + req.session.stuid + ')) < (SELECT COUNT(*) FROM ' + req.session.project + '_applications a INNER JOIN students s ON a.student = s.id WHERE s.group=(SELECT `group` FROM students WHERE id=' + req.session.stuid + ') AND a.which=' + req.body.which +'), 0, 1) as vaild', function (error, results, fields) {
+                          console.log('done');
+                          if (error) {
+                            console_log(error);
+                            res.end("500");
+                          }
+                          console.log('result' + results[0].vaild);
+                          if(results[0].vaild == 0){
+                            connection.query('DELETE FROM ' + req.session.project + '_applications WHERE id=' + results_insert.insertId, function (error, results, fields) {
+                              if (error) {
+                                console_log(error);
+                                res.end("500");
+                              } else { 
+                                res.end("300");
+                              }
+                            });
+                          } else {
+                            res.end("200");
+                          }
+                        });
+                      }); 
+                    }
+                  }
+                });
+              } else {
+                connection.query('INSERT INTO ' + req.session.project + '_applications (student, which, session) VALUES (' + req.session.stuid +', ' + req.body.which + ', ' + req.body.session + ')', function (error, results_insert, fields) {
+                  if (error) {
+                    console_log(error);
+                    res.end("500");
+                  } 
+
+                  connection.query('SELECT IF((SELECT max FROM ' + req.session.project + '_limits WHERE which=' + req.body.which +' AND `group`= (SELECT `group` FROM students WHERE id=' + req.session.stuid + ')) < (SELECT COUNT(*) FROM ' + req.session.project + '_applications a INNER JOIN students s ON a.student = s.id WHERE s.group=(SELECT `group` FROM students WHERE id=' + req.session.stuid + ') AND a.which=' + req.body.which +'), 0, 1) as vaild', function (error, results, fields) {
+                    console.log('done');
+                    if (error) {
+                      console_log(error);
+                      res.end("500");
+                    }
+                    console.log('result' + results[0].vaild);
+                    if(results[0].vaild == 0){
+                      connection.query('DELETE FROM ' + req.session.project + '_applications WHERE id=' + results_insert.insertId, function (error, results, fields) {
+                        if (error) {
+                          console_log(error);
+                          res.end("500");
+                        } else { 
+                          res.end("300");
+                        }
+                      });
+                    } else {
+                      res.end("200");
+                    }
+                  });
+                }); 
+              }
+            }
           }
         });
       } else {
-        res.end("200");
+        if(results_check[0].programrestrict == 1) {
+          connection.query('SELECT EXISTS(SELECT * FROM ?? a INNER JOIN ?? s ON a.which = s.id INNER JOIN ?? p ON s.program = p.id WHERE p.id=(SELECT p.id FROM ?? s INNER JOIN ?? p ON s.program = p.id WHERE s.id=?)) as vaild', [req.session.project+'_applications', req.session.project+'_sessions', req.session.project+'_programs', req.session.project+'_sessions', req.session.project+'_programs', req.body.which*1], function (error, results, fields) {
+            if (error) {
+              console.log(error);
+              res.end("500");
+            } else { 
+              console.log('second');
+              if(results[0].vaild == 1) {
+                res.end("102");
+
+              } else {
+                connection.query('INSERT INTO ' + req.session.project + '_applications (student, which, session) VALUES (' + req.session.stuid +', ' + req.body.which + ', ' + req.body.session + ')', function (error, results_insert, fields) {
+                  if (error) {
+                    console_log(error);
+                    res.end("500");
+                  } 
+
+                  connection.query('SELECT IF((SELECT max FROM ' + req.session.project + '_limits WHERE which=' + req.body.which +' AND `group`= (SELECT `group` FROM students WHERE id=' + req.session.stuid + ')) < (SELECT COUNT(*) FROM ' + req.session.project + '_applications a INNER JOIN students s ON a.student = s.id WHERE s.group=(SELECT `group` FROM students WHERE id=' + req.session.stuid + ') AND a.which=' + req.body.which +'), 0, 1) as vaild', function (error, results, fields) {
+                    console.log('done');
+                    if (error) {
+                      console_log(error);
+                      res.end("500");
+                    }
+                    console.log('result' + results[0].vaild);
+                    if(results[0].vaild == 0){
+                      connection.query('DELETE FROM ' + req.session.project + '_applications WHERE id=' + results_insert.insertId, function (error, results, fields) {
+                        if (error) {
+                          console_log(error);
+                          res.end("500");
+                        } else { 
+                          res.end("300");
+                        }
+                      });
+                    } else {
+                      res.end("200");
+                    }
+                  });
+                }); 
+              }
+            }
+          });
+        } else {
+          connection.query('INSERT INTO ' + req.session.project + '_applications (student, which, session) VALUES (' + req.session.stuid +', ' + req.body.which + ', ' + req.body.session + ')', function (error, results_insert, fields) {
+            if (error) {
+              console_log(error);
+              res.end("500");
+            } 
+
+            connection.query('SELECT IF((SELECT max FROM ' + req.session.project + '_limits WHERE which=' + req.body.which +' AND `group`= (SELECT `group` FROM students WHERE id=' + req.session.stuid + ')) < (SELECT COUNT(*) FROM ' + req.session.project + '_applications a INNER JOIN students s ON a.student = s.id WHERE s.group=(SELECT `group` FROM students WHERE id=' + req.session.stuid + ') AND a.which=' + req.body.which +'), 0, 1) as vaild', function (error, results, fields) {
+              console.log('done');
+              if (error) {
+                console_log(error);
+                res.end("500");
+              }
+              console.log('result' + results[0].vaild);
+              if(results[0].vaild == 0){
+                connection.query('DELETE FROM ' + req.session.project + '_applications WHERE id=' + results_insert.insertId, function (error, results, fields) {
+                  if (error) {
+                    console_log(error);
+                    res.end("500");
+                  } else { 
+                    res.end("300");
+                  }
+                });
+              } else {
+                res.end("200");
+              }
+            });
+          }); 
+        }
       }
-    });
-  }); 
+    }
+  });
+  
 });
 
 app.use('/', indexRouter);

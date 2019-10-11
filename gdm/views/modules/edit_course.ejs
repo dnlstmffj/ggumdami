@@ -99,12 +99,12 @@
           <form role="form">
             <!-- text input -->
             <div class="form-group">
-              <div class="checkbox">
+              <div class="checkbox" >
                 <label>
                   <%if(course[0].grouprestrict == 1) { %>
-                    <input type="checkbox" checked> 다른 기수에서 수강신청한 프로그램과 같은 프로그램 그룹에 속한 프로그램 신청 불가
+                    <input type="checkbox" id="groupRestrictCheckbox" checked> 다른 기수에서 수강신청한 프로그램과 같은 프로그램 그룹에 속한 프로그램 신청 불가
                   <% } else {%>
-                    <input type="checkbox"> 다른 기수에서 수강신청한 프로그램과 같은 프로그램 그룹에 속한 프로그램 신청 불가
+                    <input type="checkbox" id="groupRestrictCheckbox"> 다른 기수에서 수강신청한 프로그램과 같은 프로그램 그룹에 속한 프로그램 신청 불가
                   <% } %>
                   
                 </label>
@@ -112,9 +112,9 @@
               <div class="checkbox">
                 <label>
                   <%if(course[0].programrestrict == 1) { %>
-                    <input type="checkbox" checked> 다른 기수에서 수강신청한 프로그램과 같은 프로그램 신청 불가
+                    <input type="checkbox" id="programRestrictCheckbox" checked> 다른 기수에서 수강신청한 프로그램과 같은 프로그램 신청 불가
                   <% } else {%>
-                    <input type="checkbox"> 다른 기수에서 수강신청한 프로그램과 같은 프로그램 신청 불가
+                    <input type="checkbox" id="programRestrictCheckbox"> 다른 기수에서 수강신청한 프로그램과 같은 프로그램 신청 불가
                   <% } %>
                 </label>
               </div>
@@ -124,7 +124,7 @@
           </form>
         </div>
         <div class="box-footer">
-          <button type="submit" class="btn btn-primary">저장</button>
+          <button type="submit" class="btn btn-primary" onClick="updateRestrict(<%=info%>)">저장</button>
         </div>
         <!-- /.box-body -->
       </div>

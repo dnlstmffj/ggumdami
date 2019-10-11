@@ -170,6 +170,19 @@
       });
     }
     
+    function editStudentsNavigate() {
+      Pace.restart();
+      $.ajax({
+        url: '/admin/edit_students',
+        type : "GET",
+        dataType : "html",
+        cache : false
+      }).done(function(results) {
+        $('.content-wrapper').children().remove();
+        $('.content-wrapper').html(results);
+      });
+    }
+    
     function createCourseNavigate(project) {
       Pace.restart();
       $.ajax({
@@ -310,8 +323,159 @@
         
       }
       $('#createProgramModal').modal();
-    }// shoter
-  
+    }
+    
+    function showCreateStudentModal(mode, id, name, phone, birthdate, groupid) {
+      var group = $('#createStudentGroup');
+      if(mode == 'create') {
+        document.getElementById('createStudentModalLabel').innerHTML = '학생 추가';
+        document.getElementById('createStudentName').value = '';
+        
+        document.getElementById('createStudentId').value = 0000;
+        document.getElementById('createStudentId').disabled = false;
+        
+        document.getElementById('createStudentBirthdate').value = '';
+        document.getElementById('createStudentPhone').value = '';
+        document.getElementById('createStudentBtn').setAttribute( 'onClick', 'createStudent()' );
+      } else if(mode=='update') {
+        document.getElementById('createStudentModalLabel').innerHTML = '학생 수정';
+        document.getElementById('createStudentId').disabled = true;
+        document.getElementById('createStudentId').value = id;
+        document.getElementById('createStudentName').value = name;
+        document.getElementById('createStudentPhone').value = phone;
+        document.getElementById('createStudentBirthdate').value = birthdate;
+        group.val(groupid).prop("selected", true);
+        document.getElementById('createStudentBtn').setAttribute( 'onClick', 'updateStudent(' + id + ')' );
+        
+      }
+      $('#createStudentModal').modal();
+    }
+    
+    function showCreateStuGroupModal(mode, id, name) {
+      if(mode == 'create') {
+        document.getElementById('createStuGroupModalLabel').innerHTML = '학생 그룹 생성';
+        document.getElementById('createStuGroupName').value = '';
+        document.getElementById('createStuGroupBtn').setAttribute( 'onClick', 'createStuGroup()' );
+      } else if(mode=='update') {
+        document.getElementById('createStuGroupModalLabel').innerHTML = '학생 그룹 수정';
+        document.getElementById('createStuGroupName').value = name;
+        document.getElementById('createStuGroupBtn').setAttribute( 'onClick', 'updateStuGroup(' + id + ')' );
+      }
+      $('#createStuGroupModal').modal();
+    }
+    
+    function createStuGroup() {
+      var name = document.getElementById('createStuGroupName').value;
+      $.ajax({
+        url: '/create_group',
+        type : "POST",
+        data : {
+          name:name
+        },
+      }).done(function(results) {
+        $('#createStuGroupModal').modal('hide');
+        editStudentsNavigate();
+      });
+    }
+    
+    function updateStuGroup(id) {
+      var name = document.getElementById('createStuGroupName').value;
+      $.ajax({
+        url: '/update_group',
+        type : "POST",
+        data : {
+          id: id,
+          name:name
+        },
+      }).done(function(results) {
+        $('#createStuGroupModal').modal('hide');
+        editStudentsNavigate();
+      });
+    }
+    
+    function updateRestrict(id) {
+      var group = document.getElementById('groupRestrictCheckbox').checked;
+      var program = document.getElementById('programRestrictCheckbox').checked;
+      if(group == true) group = 1;
+      else group=0;
+      if(program == true) program = 1;
+      else program=0;
+      $.ajax({
+        url: '/update_restrict',
+        type : "POST",
+        data : {
+          project: curProject,
+          id: id,
+          group:group,
+          program:program
+          
+        },
+      }).done(function(results) {
+        editCourseNavigate(curProject, curCourse);
+      });
+    }
+    
+    function deleteStuGroup(id) {
+      var retVal = confirm("정말로 학생 그룹을 삭제할까요? ");
+      if( retVal == false ) return;
+      $.ajax({
+        url: '/delete_group',
+        type : "POST",
+        data : {
+          id: id
+        },
+      }).done(function(results) {
+        if(results == '300') {
+          alert("이 그룹에 속한 학생이 하나 이상 존재합니다. 삭제하지 못했습니다.")
+        }
+        editStudentsNavigate();
+      });
+    }
+    function createStudent() {
+      //.options[sel.selectedIndex].value;
+      var id = document.getElementById('createStudentId').value;
+      var name = document.getElementById('createStudentName').value;
+      var phone = document.getElementById('createStudentPhone').value;
+      var birthdate = document.getElementById('createStudentBirthdate').value;
+      var group = document.getElementById('createStudentGroup');
+      $.ajax({
+        url: '/create_student',
+        type : "POST",
+        data : {
+          id: id,
+          name:name,
+          phone: phone,
+          birthdate: birthdate,
+          group: group.options[group.selectedIndex].value
+        },
+      }).done(function(results) {
+        $('#createStudentModal').modal('hide');
+        editStudentsNavigate();
+      });
+    }
+    
+    
+    function updateStudent(id) {
+      //.options[sel.selectedIndex].value;
+      var name = document.getElementById('createStudentName').value;
+      var phone = document.getElementById('createStudentPhone').value;
+      var birthdate = document.getElementById('createStudentBirthdate').value;
+      var group = document.getElementById('createStudentGroup');
+      $.ajax({
+        url: '/update_student',
+        type : "POST",
+        data : {
+          id:id,
+          name:name,
+          phone: phone,
+          birthdate: birthdate,
+          group: group.options[group.selectedIndex].value
+        },
+      }).done(function(results) {
+        $('#createStudentModal').modal('hide');
+        editStudentsNavigate();
+      });
+    }
     
     function updateGroup(id) {
       var name = document.getElementById('updateGroupName').value;
@@ -345,6 +509,21 @@
           alert("이 프로그램 그룹에 속한 프로그램이 하나 이상 존재합니다. 삭제하지 못했습니다.")
         }
         editProgramNavigate(curProject, curCourse);
+        
+      });
+    }
+    
+    function deleteStudent(id) {
+      var retVal = confirm("정말로 이 학생을 삭제할까요? 이 학생의 신청정보가 모두 삭제됩니다.");
+      if( retVal == false ) return;
+      $.ajax({
+        url: '/delete_student',
+        type : "POST",
+        data : {
+          id: id
+        },
+      }).done(function(results) {
+        editStudentsNavigate();
         
       });
     }
@@ -419,6 +598,8 @@
     }
     
     function editCourseNavigate(project, course) {
+      curProject = project;
+      curCourse = course;
       Pace.restart();
       $.ajax({
         url: "/get_programinfo",
@@ -801,7 +982,7 @@ content-wrapper
           </ul>
         </li>
         <li class="header">학교관리</li>
-        <li><a href="#"><i class="fa fa-users"></i> <span>학생 관리</span></a></li>
+        <li><a href="#" onClick="editStudentsNavigate()"><i class="fa fa-users"  ></i> <span>학생 관리</span></a></li>
         <li><a href="#"><i class="fa fa-graduation-cap"></i> <span>교사 관리</span></a></li>
         <li><a href="#"><i class="fa fa-building"></i> <span>학교 설정</span></a></li>
         <li class="header">서비스 설정</li>
@@ -925,14 +1106,76 @@ content-wrapper
           </select>
         </div>
       </div>
-      <div class="modal-footer">s
+      <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">닫기</button>
-        <button type="button" class="btn btn-primary" id="createProgramBtn" onClick="createProgram()">저장</button>
+        <button type="button" class="btn btn-primary" id="createProgramBtn" onClick="createProgram()">확인</button>
       </div>
     </div>
   </div>
 </div>
 
+<div class="modal fade" id="createStudentModal" tabindex="-1" role="dialog" aria-labelledby="createStudentModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="createStudentModalLabel">학생 </h4>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>학번</label>
+          <input type="number" class="form-control" id="createStudentId" placeholder="학번을 입력하세요">
+        </div>
+        <div class="form-group">
+          <label>이름</label>
+          <input type="text" class="form-control" id="createStudentName" placeholder="이름을 입력하세요">
+        </div>
+        <div class="form-group">
+          <label>그룹</label>
+          <select type="text" class="form-control" id="createStudentGroup" placeholder="그룹을 선택하세요">
+            <%for(i=0; i<group.length; i++) {%>
+              <option value="<%=group[i].id%>"><%=group[i].name%></option>
+            <%}%>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>휴대전화번호</label>
+          <input type="text" class="form-control" id="createStudentPhone" placeholder="휴대전화번호을 입력하세요">
+        </div>
+        <div class="form-group">
+          <label>생년월일</label>
+          <input type="number" class="form-control" id="createStudentBirthdate" placeholder="생년월일을 입력하세요">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">닫기</button>
+        <button type="button" class="btn btn-primary" id="createStudentBtn" onClick="createStudent('create')">확인</button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+<div class="modal fade" id="createStuGroupModal" tabindex="-1" role="dialog" aria-labelledby="createStuGroupModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="createStuGroupModalLabel">학생 그룹 </h4>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>그룹명</label>
+          <input type="text" class="form-control" id="createStuGroupName" placeholder="그룹명을 입력하세요">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">닫기</button>
+        <button type="button" class="btn btn-primary" id="createStuGroupBtn" >확인</button>
+      </div>
+    </div>
+  </div>
+</div>
+  
 <!-- jQuery 3 -->
 <script src="../bower_components/jquery/dist/jquery.min.js"></script>
 <!-- Bootstrap 3.3.7 -->

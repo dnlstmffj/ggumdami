@@ -112,12 +112,12 @@
                   session:session
                 }
               }).done(function(results) {
-                if(results == '200') {
-                  ons.notification.toast('신청을 성공적으로 완료했어요. ' , { timeout: 2000 });
-                } else if (results == '300') {
-                  
-                  ons.notification.alert('정원초과로 신청이 마감된 프로그램입니다.');
-                }
+
+                if(results == '200') ons.notification.toast('신청을 성공적으로 완료했어요. ' , { timeout: 2000 });
+                else if (results == '300') ons.notification.alert('정원초과로 신청이 마감된 프로그램입니다.');
+                else if (results == '102') ons.notification.alert('다른 기수에서 신청한 프로그램을 다시 신청할 수는 없습니다.');
+                else if (results == '101') ons.notification.alert('다른 기수에서 신청한 프로그램이 속한 그룹의 프로그램은 신청할 수 없습니다.');
+                
                 document.querySelector('#navigator_' + session).popPage();
                 loadPage();
               });
