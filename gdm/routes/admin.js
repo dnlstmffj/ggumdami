@@ -45,7 +45,7 @@ router.post('/home', function(req, res, next) {
   res.render('modules/home');
 });
 router.get('/edit_programs', function(req, res, next) {
-  var data_programs=[], data_groups=[], data_teachers=[], data_period=[], data_indexgroup=[];
+  var data_programs=[], data_groups=[], data_teachers=[], data_period=[], data_indexgroup=[], data_unindexteacher=[];
   for(var i=0; i<10; i++)  data_period[i] = [];
 
   console.log(req.query.project);
@@ -63,6 +63,7 @@ router.get('/edit_programs', function(req, res, next) {
     for(var i=0; i<results.length; i++) {
       data_teachers[results[i].id] = results[i];
     }
+    data_unindexteacher = results;
     console.log(data_programs);
     
 
@@ -76,7 +77,7 @@ router.get('/edit_programs', function(req, res, next) {
       
     }
     console.log(data_indexgroup);
-    res.render('modules/edit_programs', {program:data_programs, teacher:data_teachers,  group: results, indexGroup:data_indexgroup});
+    res.render('modules/edit_programs', {program:data_programs, teacher:data_teachers,  group: results, indexGroup:data_indexgroup, unindexteacher: data_unindexteacher});
   });
 
 });

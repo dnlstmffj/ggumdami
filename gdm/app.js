@@ -225,7 +225,7 @@ app.post('/get_programgroups', function(req, res){
 });
 
 app.post('/create_program', function(req, res){
-  connection.query('INSERT INTO ' + req.body.project + '_programs (name, teacher, place, lecture, group) VALUES (' + req.body.name + ', ' + req.body.teacher + ', ' + req.body.place + ', ' + req.body.lecture + ', ' + req.body.group + ')', function (error, results, fields) {
+  connection.query('INSERT INTO ' + req.body.project + '_programs (name, teacher, place, lecture, `group`) VALUES (\'' + req.body.name + '\', ' + req.body.teacher + ', \'' + req.body.place + '\', ' + req.body.lecture + ', ' + req.body.group + ')', function (error, results, fields) {
     if (error) {
       console_log(error);
       res.end("500");
