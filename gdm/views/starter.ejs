@@ -131,7 +131,10 @@
       if( value == "" || value == null || value == undefined || ( value != null && typeof value == "object" && !Object.keys(value).length ) ) return true;
       else return false;
     };
+    $(document).ajaxStart(function() { Pace.restart(); });
+
     function pageNavigate(page) {
+      Pace.restart();
       $.ajax({
         url: page,
         type : "POST",
@@ -151,6 +154,20 @@
       });
     }
     
+    function createProjectNavigate() {
+      Pace.restart();
+      $.ajax({
+        url: '/assets/add_project.html',
+        type : "GET",
+        dataType : "html",
+        cache : false
+      }).done(function(results) {
+        $('.content-wrapper').children().remove();
+        $('.content-wrapper').html(results);
+      });
+    }
+    
+    
     function addGroup() {
       var name = document.getElementById('addGroupName').value;
       $.ajax({
@@ -164,6 +181,22 @@
       }).done(function(results) {
         $('#addGroupModal').modal('hide');
         editProgramNavigate(curProject, curCourse);
+      });
+    }
+    
+    function createProject() {
+      //.options[sel.selectedIndex].value;
+      var name = document.getElementById('createProjectName').value;
+      var classid = document.getElementById('createProjectClass').value;
+      $.ajax({
+        url: '/create_project',
+        type : "POST",
+        data : {
+          name: name,
+          class: classid
+        },
+      }).done(function(results) {
+        window.location.href = '/admin';
       });
     }
     
@@ -190,6 +223,30 @@
       });
     }
     
+    function updateProgram(id) {
+      //.options[sel.selectedIndex].value;
+      var name = document.getElementById('createProgramName').value;
+      var teacher = document.getElementById('createProgramTeacher');
+      var place = document.getElementById('createProgramPlace').value;
+      var group = document.getElementById('createProgramGroup');
+      $.ajax({
+        url: '/update_program',
+        type : "POST",
+        data : {
+          project: curProject,
+          lecture: curCourse,
+          name:name,
+          teacher: teacher.options[teacher.selectedIndex].value,
+          place: place,
+          group: group.options[group.selectedIndex].value,
+          id: id
+        },
+      }).done(function(results) {
+        $('#createProgramModal').modal('hide');
+        editProgramNavigate(curProject, curCourse);
+      });
+    }
+    
     function showUpdateGroup(id, name) {
       document.getElementById('updateGroupName').value = name;
       document.getElementById('updateGroupBtn').setAttribute( 'onClick', 'updateGroup(' + id + ')' );
@@ -198,9 +255,26 @@
       
     }
     
-    function showCreateProgramModal() {
+    function showCreateProgramModal(mode, id, name, place, teacherid, groupid) {
+      var group = $('#createProgramGroup');
+      var teacher = $('#createProgramTeacher');
+      if(mode == 'create') {
+        document.getElementById('createProgramModalLabel').innerHTML = '프로그램 생성';
+        document.getElementById('createProgramName').value = '';
+        document.getElementById('createProgramPlace').value = '';
+        document.getElementById('createProgramBtn').setAttribute( 'onClick', 'createProgram()' );
+      } else if(mode=='update') {
+        document.getElementById('createProgramModalLabel').innerHTML = '프로그램 수정';
+        document.getElementById('createProgramName').value = name;
+        group.val(groupid).prop("selected", true);
+        teacher.val(teacherid).prop("selected", true);
+        document.getElementById('createProgramPlace').value = place;
+        document.getElementById('createProgramBtn').setAttribute( 'onClick', 'updateProgram(' + id + ')' );
+        
+      }
       $('#createProgramModal').modal();
-    }
+    }// shoter
+  
     
     function updateGroup(id) {
       var name = document.getElementById('updateGroupName').value;
@@ -238,11 +312,45 @@
       });
     }
     
+    function deleteProgram(id) {
+      var retVal = confirm("정말로 프로그램을 삭제할까요? 이 프로그램이 이용되는 세션이 있다면 해당 세션은 삭제됩니다.");
+      if( retVal == false ) return;
+      $.ajax({
+        url: '/delete_program',
+        type : "POST",
+        data : {
+          id: id,
+          project: curProject,
+        },
+      }).done(function(results) {
+
+        editProgramNavigate(curProject, curCourse);
+        
+      });
+    }
+    
     window.onload = function () {
       pageNavigate('/admin/home');
     }
     
     function editProgramNavigate(project, course) {
+      Pace.restart();
+      var prog_group=[];
+      $.ajax({
+        url: "/get_prog_groups",
+        data : {
+          project:project,
+          course: course
+        },
+        type: "POST"
+      }).done(function(results) {
+        $('#createProgramGroup').empty();
+          for(i=0; i<results.length; i++) {
+           $('#createProgramGroup').append("<option value='" + results[i].id + "'>" + results[i].name + "</option>");
+   
+          }
+         
+      });
       $.ajax({
         url: "/get_programinfo",
         data : {
@@ -274,6 +382,7 @@
     }
     
     function editCourseNavigate(project, course) {
+      Pace.restart();
       $.ajax({
         url: "/get_programinfo",
         data : {
@@ -455,7 +564,7 @@ content-wrapper
   <header class="main-header">
 
     <!-- Logo -->
-    <a href="/" class="logo">
+    <a href="/admin" class="logo">
       <!-- mini logo for sidebar mini 50x50 pixels -->
       <span class="logo-mini"><b>꿈담이</b></span>
       <!-- logo for regular state and mobile devices -->
@@ -621,8 +730,8 @@ content-wrapper
                     </span>
                   </a>
                   <ul class="treeview-menu">
-                    <li><a onClick="editCourseNavigate('<%=project[i].class%>', <%=session_info[i][j].id%>)"><i class="fa fa-align-justify"></i> 세션</a></li>
-                    <li><a href="#"><i class="fa fa-bullseye"></i> 프로그램</a></li>
+                    <li><a href="#" onClick="editCourseNavigate('<%=project[i].class%>', <%=session_info[i][j].id%>)"><i class="fa fa-align-justify"></i> 세션</a></li>
+                    <li><a href="#" onClick="editProgramNavigate('<%=project[i].class%>', <%=session_info[i][j].id%>)"><i class="fa fa-bullseye"></i> 프로그램</a></li>
                   </ul>
                   <%}%>
                 </li>
@@ -748,6 +857,44 @@ content-wrapper
   </div>
 </div>
   
+<div class="modal fade" id="createProgramModal" tabindex="-1" role="dialog" aria-labelledby="createProgramModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="createProgramModalLabel">프로그램 </h4>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>프로그램명</label>
+          <input type="text" class="form-control" id="createProgramName" placeholder="프로그램명을 입력하세요">
+        </div>
+        <div class="form-group">
+          <label>지도교사</label>
+          <select type="text" class="form-control" id="createProgramTeacher" placeholder="지도교사을 입력하세요">
+            <%for(i=0; i<unindexteacher.length; i++) {%>
+              <option value="<%=unindexteacher[i].id%>"><%=unindexteacher[i].name%></option>
+            <%}%>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>수업장소</label>
+          <input type="text" class="form-control" id="createProgramPlace" placeholder="수업장소를 입력하세요">
+        </div>
+        <div class="form-group">
+          <label>프로그램 그룹</label>
+          <select type="text" class="form-control" id="createProgramGroup" placeholder="프로그램 그룹을 선택하세요">
+            
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">s
+        <button type="button" class="btn btn-default" data-dismiss="modal">닫기</button>
+        <button type="button" class="btn btn-primary" id="createProgramBtn" onClick="createProgram()">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- jQuery 3 -->
 <script src="../bower_components/jquery/dist/jquery.min.js"></script>
@@ -784,5 +931,7 @@ content-wrapper
 <!-- Optionally, you can add Slimscroll and FastClick plugins.
      Both of these plugins are recommended to enhance the
      user experience. -->
+<script src="pace/pace.js"></script>
+<link rel='stylesheet' href='/stylesheets/style.css' />
 </body>
 </html>

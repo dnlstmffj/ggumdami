@@ -17,7 +17,8 @@ const connection = mysql.createConnection({
   host:'speakeasy.lucomstudio.com',
   user:'drecat',
   password:'Hello00!',
-  database:'ggumdami'
+  database:'ggumdami',
+  multipleStatements: true
 });
 
 
@@ -166,6 +167,17 @@ app.post('/get_groups', function(req, res){
   });
 });
 
+app.post('/get_prog_groups', function(req, res){
+  connection.query('SELECT * FROM ' + req.body.project + '_groups WHERE lecture=' + req.body.course, function (error, results, fields) {
+    if (error) {
+      console_log(error);
+      res.end("500");
+    } else { 
+      res.json(results);
+    }
+  });
+});
+
 app.post('/create_prog_group', function(req, res){
   connection.query('INSERT INTO ' + req.body.project + '_groups (name, lecture) VALUES (\'' + req.body.name + '\', ' + req.body.course + ')', function (error, results, fields) {
     if (error) {
@@ -236,7 +248,7 @@ app.post('/create_program', function(req, res){
 });
 
 app.post('/update_program', function(req, res){
-  connection.query('UPDATE ' + req.body.project + '_programs SET name=' + req.body.name + ', teacher=' + req.body.teacher + ', place=' + req.body.place + 'group=' + req.body.group + ' WHERE id=' + req.body.id, function (error, results, fields) {
+  connection.query('UPDATE ?? SET name=?, teacher=?, place=?, `group`=? WHERE id=?', [req.body.project+'_programs', req.body.name, req.body.teacher, req.body.place, req.body.group, req.body.id],function (error, results, fields) {
     if (error) {
       console_log(error);
       res.end("500");
@@ -247,7 +259,7 @@ app.post('/update_program', function(req, res){
 });
 
 app.post('/delete_program', function(req, res){
-  connection.query('DELETE s.*, a.* FROM ' + req.body.project + '_sessions s LEFT JOIN ' + req.body.project + 'applications a ON s.id = a.which WHERE s.program=' + req.body.id + '; DELETE FROM ' + req.body.project + '_programs WHERE id=' + req.body.id, function (error, results, fields) {
+  connection.query('DELETE s.*, a.* FROM ' + req.body.project + '_sessions s LEFT JOIN ' + req.body.project + '_applications a ON s.id = a.which WHERE s.program=' + req.body.id + '; DELETE FROM ' + req.body.project + '_programs WHERE id=' + req.body.id, function (error, results, fields) {
     if (error) {
       console_log(error);
       res.end("500");
