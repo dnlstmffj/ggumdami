@@ -178,6 +178,32 @@ app.post('/get_prog_groups', function(req, res){
   });
 });
 
+
+app.post('/create_course', function(req, res){
+  connection.query('INSERT INTO ?? (name, class, batches) VALUES (?, ?, ?)', [req.body.project+'_session_info', req.body.name, req.body.class, req.body.batches],function (error, results, fields) {
+    if (error) {
+      console_log(error);
+      res.end("500");
+    } else { 
+      var query = 'INSERT INTO ?? (session, batch) VALUES '
+      for(i=0; i<req.body.batches*1; i++) {
+        query += '(' + results.insertId + ', ' + (i+1) + ')';
+        if(i<req.body.batches-1) query+=', ';
+      }
+      connection.query(query, [req.body.project+'_period'],function (error, results, fields) {
+        if (error) {
+          console_log(error);
+          res.end("500");
+        } else { 
+          res.end("200");
+        }
+      });
+      
+    }
+  });
+});
+
+
 app.post('/create_prog_group', function(req, res){
   connection.query('INSERT INTO ' + req.body.project + '_groups (name, lecture) VALUES (\'' + req.body.name + '\', ' + req.body.course + ')', function (error, results, fields) {
     if (error) {

@@ -154,12 +154,15 @@
       });
     }
     
-    function createProjectNavigate() {
+    function createProjectNavigate(project) {
       Pace.restart();
       $.ajax({
         url: '/assets/add_project.html',
         type : "GET",
         dataType : "html",
+        data : {
+          project: project
+        },
         cache : false
       }).done(function(results) {
         $('.content-wrapper').children().remove();
@@ -167,6 +170,21 @@
       });
     }
     
+    function createCourseNavigate(project) {
+      Pace.restart();
+      $.ajax({
+        url: '/admin/add_course',
+        type : "GET",
+        dataType : "html",
+        data : {
+          project: project
+        },
+        cache : false
+      }).done(function(results) {
+        $('.content-wrapper').children().remove();
+        $('.content-wrapper').html(results);
+      });
+    }
     
     function addGroup() {
       var name = document.getElementById('addGroupName').value;
@@ -194,6 +212,25 @@
         data : {
           name: name,
           class: classid
+        },
+      }).done(function(results) {
+        window.location.href = '/admin';
+      });
+    }
+    
+    function createCourse(project) {
+      //.options[sel.selectedIndex].value;
+      var name = document.getElementById('createCourseName').value;
+      var classid = document.getElementById('createCourseClass').value;
+      var batches = document.getElementById('createCourseBatches');
+      $.ajax({
+        url: '/create_course',
+        type : "POST",
+        data : {
+          name: name,
+          class: classid,
+          batches: batches.options[batches.selectedIndex].value,
+          project: project
         },
       }).done(function(results) {
         window.location.href = '/admin';
@@ -709,7 +746,7 @@ content-wrapper
               </span>
           </a>
           <ul class="treeview-menu">
-            <li><a href="#"><i class="fa fa-plus"></i> 새 프로젝트</a></li>
+            <li><a href="#" onClick="createProjectNavigate()"><i class="fa fa-plus"></i> 새 프로젝트</a></li>
             
             <%for(var i=0; i<project.length-1; i++) {%>
             <li class="treeview">
@@ -720,7 +757,7 @@ content-wrapper
               </a>
               
               <ul class="treeview-menu">
-                <li><a href="#"><i class="fa fa-plus"></i> 새 수강과정</a></li>
+                <li><a href="#" onClick="createCourseNavigate('<%=project[i].class%>')"><i class="fa fa-plus"></i> 새 수강과정</a></li>
                 <%for(var j=0; j<session_info[i].length; j++) {%>
                 
                 <li class="treeview">

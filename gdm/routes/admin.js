@@ -128,7 +128,10 @@ router.get('/edit_course', function(req, res, next) {
     res.render('modules/edit_course', {course: data_course, program: results, period:data_period, project:req.query.project, info: req.query.course});
 
   });
-
-
 });
+
+router.get('/add_course', function(req, res, next) {
+  res.render('modules/add_course', {info: req.query.project});
+});
+
 module.exports = router;
