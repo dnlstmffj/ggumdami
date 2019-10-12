@@ -202,7 +202,7 @@
                 if(results.length > 0) $('#list_programs').append("<ons-list-heder class='list-header'>" + prog_groups[results[0].group].name + "</ons-list-heder>");
                 for(var i=0; i<results.length; i++) {     
                   if(i>0 && results[i].group != results[i-1].group) $('#list_programs').append("<ons-list-heder id='toolbar_apply' class='list-header'>" + prog_groups[results[i].group].name + "</ons-list-heder>");
-                  content = "<ons-list-item onClick='apply(" + results[i].id + ', ' + page.data.session + ")' class='list-item' tappable><div class='center'> <span class='list-item__title'>" + programs[results[i].program].name + "</span><span class='list-item__subtitle'>"+ teachers[programs[results[i].program].teacher].name +"</span> </div> <div class='right'>" + results[i].cur + "/" + results[i].max +"</div> </ons-list-item>"; //중단점a
+                  content = "<ons-list-item onClick='apply(" + results[i].id + ', ' + page.data.session + ")' class='list-item' tappable><div class='center'> <span class='list-item__title'>" + programs[results[i].program].name + "</span><span class='list-item__subtitle'>"+ teachers[programs[results[i].program].teacher].name +"</span> </div> <div class='right'>신청하려면 터치하세요</div> </ons-list-item>"; //중단점a
                   
                   $('#list_programs').append(content);
                 }
@@ -276,9 +276,9 @@
                 <div class="content">
                 <ons-list>
                     <ons-list-header>신청자명</ons-list-header>
-                    <ons-list-item>테스트</ons-list-item>
+                    <ons-list-item><%=info.name%></ons-list-item>
                     <ons-list-header>학번</ons-list-header>
-                    <ons-list-item>1501</ons-list-item>
+                    <ons-list-item><%=info.id%></ons-list-item>
                 </ons-list>
                 </div>
             </ons-card>

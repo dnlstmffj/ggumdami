@@ -164,6 +164,71 @@ router.get('/edit_students', function(req, res, next) {
   });
 });
 
+
+router.get('/applications_all', function(req, res, next) {
+  var data_programs=[], data_sessions=[], data_applications=[], data_students=[], data_groups=[], data_teachers=[], data_info;
+  connection.query('SELECT * FROM ??', [req.query.project+'_programs'], function (error, results, fields) {
+    if (error) {
+        console.log(error);
+    }
+    for(var i=0; i<results.length; i++) {
+      data_programs[results[i].id] = results[i];
+    }
+  });
+  connection.query('SELECT * FROM ??', [req.query.project+'_applications'], function (error, results, fields) {
+    if (error) {
+        console.log(error);
+    }
+    data_applications = results;
+  });
+  connection.query('SELECT * FROM ??', ['students'], function (error, results, fields) {
+    if (error) {
+        console.log(error);
+    }
+    for(var i=0; i<results.length; i++) {
+      data_students[results[i].id] = results[i];
+    }
+  });
+  connection.query('SELECT * FROM ??', ['teachers'], function (error, results, fields) {
+    if (error) {
+        console.log(error);
+    }
+    for(var i=0; i<results.length; i++) {
+      data_teachers[results[i].id] = results[i];
+    }
+    console.log(data_teachers);
+  });
+  connection.query('SELECT * FROM ??', ['student_groups'], function (error, results, fields) {
+    if (error) {
+        console.log(error);
+    }
+    console.log(results);
+    for(var i=0; i<results.length; i++) {
+      data_groups[results[i].id] = results[i];
+    }
+  });
+  connection.query('SELECT * FROM ?? WHERE class=?', ['projects', req.query.project], function (error, results, fields) {
+    if (error) {
+        console.log(error);
+    }
+    console.log(results);
+    data_info = results[0].name;
+    
+  });
+  connection.query('SELECT * FROM ??', [req.query.project+'_sessions'], function (error, results, fields) {
+    if (error) {
+     
+      console.log(error);
+    }
+    for(var i=0; i<results.length; i++) {
+      data_sessions[results[i].id] = results[i];
+    }
+    console.log(results);
+    res.render('modules/applications_all', {program: data_programs, session: data_sessions, application: data_applications, group:data_groups, student:data_students, teacher:data_teachers, project: data_info, projectClass: req.query.project});
+
+  });
+});
+
 router.get('/add_course', function(req, res, next) {
   res.render('modules/add_course', {info: req.query.project});
 });

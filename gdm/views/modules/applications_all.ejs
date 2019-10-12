@@ -1,0 +1,51 @@
+
+
+<section class="content-header">
+  <h1>
+    <%=project%>
+    <small> 신청관리</small>
+  </h1>
+  <ol class="breadcrumb">
+    <li class="active"><a href="#"><i class="fa fa-dashboard"></i> 신청현황</a></li>
+
+
+  </ol>
+</section>
+
+<!-- Main content -->
+<section class="content">
+  <div class="box">
+      <div class="box-header">
+        <h3 class="box-title">신청 목록</h3>
+      </div>
+      <!-- /.box-header -->
+     <div class="box-body">
+        <table id="applicationsTable" class="table table-bordered table-hover" >
+          <thead>
+          <tr>
+            <th>신청자명</th>
+            <th>그룹</th>
+            <th>프로그램</th>
+            <th>지도교사</th>
+            <th>작업</th>
+          </tr>
+          </thead>
+          <tbody>
+          <%for(i=0; i<application.length; i++) {%>
+            <tr>
+              <td><%=student[application[i].student].name%></td>
+              <td><%=group[student[application[i].student].group].name%></td>
+              <td><%=program[session[application[i].which].program].name%></td>
+              <td><%=teacher[program[session[application[i].which].program].teacher].name%></td>
+              <td><button type="button" class="btn btn-danger btn-sm" onClick="cancelApplication('<%=projectClass%>', <%=application[i].id%>)">취소</button></td>
+            </tr>
+          <%}%>
+          </tbody>
+
+       </table>
+    </div>
+  </div>
+</section>
+
+
+  

@@ -96,6 +96,18 @@ app.post('/get_teachers', function(req, res){
   });
 });
 
+app.post('/cancel_application', function(req, res){
+  connection.query('DELETE FROM ' + req.body.project + '_applications WHERE id=' + req.body.id, function (error, results, fields) {
+    if (error) {
+      console_log(error);
+      res.end("500");
+    } else { 
+      res.end("200");
+    }
+  });
+});
+
+
 app.post('/get_programs_incourse', function(req, res){
   connection.query('SELECT * FROM ' + req.body.project + '_sessions WHERE session=' + req.body.course + ' ORDER BY batch', function (error, results, fields) {
     if (error) {
@@ -665,7 +677,7 @@ app.post('/apply', function(req, res){
     } else { 
       if(results_check[0].grouprestrict == 1) {
         //SELECT aa.* FROM applications a INNER JOIN sessions s ON a.which = s.id INNER JOIN programs p ON s.program = p.id WHERE p.group= 1
-        connection.query('SELECT EXISTS(SELECT * FROM ?? a INNER JOIN ?? s ON a.which = s.id INNER JOIN ?? p ON s.program = p.id WHERE p.group= (SELECT p.group FROM ?? s INNER JOIN ?? p ON s.program = p.id WHERE s.id=?)) as vaild', [req.session.project+'_applications', req.session.project+'_sessions', req.session.project+'_programs', req.session.project+'_sessions', req.session.project+'_programs', req.body.which*1], function (error, results, fields) {
+        connection.query('SELECT EXISTS(SELECT * FROM ?? a INNER JOIN ?? s ON a.which = s.id INNER JOIN ?? p ON s.program = p.id WHERE p.group= (SELECT p.group FROM ?? s INNER JOIN ?? p ON s.program = p.id WHERE s.id=? AND a.student=?)) as vaild', [req.session.project+'_applications', req.session.project+'_sessions', req.session.project+'_programs', req.session.project+'_sessions', req.session.project+'_programs', req.body.which*1, req.session.stuid], function (error, results, fields) {
           if (error) {
             console.log(error);
             res.end("500");
@@ -676,7 +688,7 @@ app.post('/apply', function(req, res){
             } else {
               console.log('first');
               if(results_check[0].programrestrict == 1) {
-                connection.query('SELECT EXISTS(SELECT * FROM ?? a INNER JOIN ?? s ON a.which = s.id INNER JOIN ?? p ON s.program = p.id WHERE p.id=(SELECT p.id FROM ?? s INNER JOIN ?? p ON s.program = p.id WHERE s.id=?)) as vaild', [req.session.project+'_applications', req.session.project+'_sessions', req.session.project+'_programs', req.session.project+'_sessions', req.session.project+'_programs', req.body.which*1], function (error, results, fields) {
+                connection.query('SELECT EXISTS(SELECT * FROM ?? a INNER JOIN ?? s ON a.which = s.id INNER JOIN ?? p ON s.program = p.id WHERE p.id=(SELECT p.id FROM ?? s INNER JOIN ?? p ON s.program = p.id WHERE s.id=? AND a.student=?)) as vaild', [req.session.project+'_applications', req.session.project+'_sessions', req.session.project+'_programs', req.session.project+'_sessions', req.session.project+'_programs', req.body.which*1, req.session.stuid], function (error, results, fields) {
                   if (error) {
                     console.log(error);
                     res.end("500");
@@ -750,7 +762,7 @@ app.post('/apply', function(req, res){
         });
       } else {
         if(results_check[0].programrestrict == 1) {
-          connection.query('SELECT EXISTS(SELECT * FROM ?? a INNER JOIN ?? s ON a.which = s.id INNER JOIN ?? p ON s.program = p.id WHERE p.id=(SELECT p.id FROM ?? s INNER JOIN ?? p ON s.program = p.id WHERE s.id=?)) as vaild', [req.session.project+'_applications', req.session.project+'_sessions', req.session.project+'_programs', req.session.project+'_sessions', req.session.project+'_programs', req.body.which*1], function (error, results, fields) {
+          connection.query('SELECT EXISTS(SELECT * FROM ?? a INNER JOIN ?? s ON a.which = s.id INNER JOIN ?? p ON s.program = p.id WHERE p.id=(SELECT p.id FROM ?? s INNER JOIN ?? p ON s.program = p.id WHERE s.id=? AND a.student=?)) as vaild', [req.session.project+'_applications', req.session.project+'_sessions', req.session.project+'_programs', req.session.project+'_sessions', req.session.project+'_programs', req.body.which*1, req.session.stuid], function (error, results, fields) {
             if (error) {
               console.log(error);
               res.end("500");

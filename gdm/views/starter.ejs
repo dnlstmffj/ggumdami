@@ -169,6 +169,65 @@
         $('.content-wrapper').html(results);
       });
     }
+    function applicationAll(project) {
+      Pace.restart();
+      $.ajax({
+        url: '/admin/applications_all',
+        type : "GET",
+        dataType : "html",
+        data : {
+          project: project
+        },
+        cache : false
+      }).done(function(results) {
+        $('.content-wrapper').children().remove();
+        $('.content-wrapper').html(results);
+        $('#applicationsTable').DataTable({
+          'paging'      : true,
+          'lengthChange': true,
+          'searching'   : true,
+          'ordering'    : true,
+          'info'        : true,
+          'autoWidth'   : true
+        })
+      });
+      
+    }
+    
+    function cancelApplication(project, id) {
+      var retVal = confirm("정말로 신청 정보를 삭제할까요? ");
+      if( retVal == false ) return;
+      $.ajax({
+        url: '/cancel_application',
+        type : "POST",
+        dataType : "html",
+        data : {
+          project: project,
+          id:id
+        },
+        cache : false
+      }).done(function(results) {
+        applicationAll(project);
+      });
+    }
+    
+    function applicationCourse(project, course) {
+      Pace.restart();
+      $.ajax({
+        url: '/applications_course',
+        type : "GET",
+        dataType : "html",
+        data : {
+          project: project,
+          course: course
+        },
+        cache : false
+      }).done(function(results) {
+        $('.content-wrapper').children().remove();
+        $('.content-wrapper').html(results);
+      });
+    }
+    
     
     function editStudentsNavigate() {
       Pace.restart();
@@ -684,6 +743,8 @@
             
           }
           $('.select2').select2()
+          
+          
         });
       });
     }
@@ -856,15 +917,13 @@ content-wrapper
             <!-- Menu Toggle Button -->
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">
               <!-- The user image in the navbar-->
-              <img src="../dist/img/user2-160x160.jpg" class="user-image" alt="User Image">
+
               <!-- hidden-xs hides the username on small devices so only the image appears. -->
               <span class="hidden-xs">순천향림중학교</span>
             </a>
             <ul class="dropdown-menu">
               <!-- The user image in the menu -->
               <li class="user-header">
-                <img src="dist/img/user2-160x160.jpg" class="img-circle" alt="User Image">
-
                 <p>
                   순천향림중학교
                   <small><b>교사</b> 강창완</small>
@@ -906,7 +965,7 @@ content-wrapper
       <!-- Sidebar user panel (optional) -->
       <div class="user-panel">
         <div class="pull-left image">
-          <img src="dist/img/user2-160x160.jpg" class="img-circle" alt="User Image">
+          <img src="dist/img/user2-160x160.jpg" class="user-image" alt="User Image">
         </div>
         <div class="pull-left info">
           <p>강창완</p>
@@ -961,24 +1020,19 @@ content-wrapper
           </ul>
         </li>
         <li class="treeview">
-          <a href="#"><i class="fa fa-copy"></i> <span>신청현황</span>
+          <a href="#">
+            <i class="fa fa-share"></i> <span>신청현황</span>
             <span class="pull-right-container">
-                <i class="fa fa-angle-left pull-right"></i>
-              </span>
+              <i class="fa fa-angle-left pull-right"></i>
+            </span>
           </a>
           <ul class="treeview-menu">
+            <%for(var i=0; i<project.length-1; i++) {%>
             <li class="treeview">
-              <a href="#"><i class="fa fa-th"></i> 자유학기제 수강신청
-                <span class="pull-right-container">
-                  <i class="fa fa-angle-left pull-right"></i>
-                </span>
+              <a href="#" onClick="applicationAll('<%=project[i].class%>')"><i class="fa fa-circle-o"></i> <%=project[i].name%>
               </a>
-              <ul class="treeview-menu">
-                <li><a href="#"><i class="fa fa-th-large"></i> 주제선택프로그램</a></li>
-              </ul>
-              
             </li>
-            
+            <%}%>
           </ul>
         </li>
         <li class="header">학교관리</li>
