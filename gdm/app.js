@@ -12,11 +12,11 @@ const accountRouter = require('./routes/account');
 const adminRouter = require('./routes/admin');
 
 const app = express();
-// const moment_timezone = require('moment-timezone');
+
 const connection = mysql.createConnection({
-  host:'speakeasy.lucomstudio.com',
-  user:'drecat',
-  password:'Hello00!',
+  host:'host',
+  user:'username',
+  password:'password',
   database:'ggumdami',
   multipleStatements: true
 });
@@ -44,7 +44,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
- secret: '@#@$RYCBAR123#@$#$',
+ secret: 'SECRET',
  resave: false,
  saveUninitialized: true
 }));
