@@ -13,7 +13,7 @@
     "express-session": "^1.16.2",
     "framework7": "^4.5.0",
     "http-errors": "~1.6.3",
-    "moment": "^2.24.0",
+    "moment": "^2.29.2",
     "moment-timezone": "^0.5.26",
     "morgan": "~1.9.1",
     "mysql": "^2.17.1"
